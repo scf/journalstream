@@ -1,0 +1,189 @@
+<?php
+
+class SCFCollectionsWebTestCase extends DrupalWebTestCase {
+  protected $biblio_node;
+
+  function setUp() {
+    // Enable any module that you will need in your tests.
+    parent::setUp('scf_collections');
+    $web_user = $this->drupalCreateUser(array('create collection content','create topic_queue content'));
+    $this->drupalLogin($web_user);
+    //Create a bilbio node for testing
+    $this->biblio_node = $this->createBiblioNode();
+  }
+
+  /** 
+    * Helper function for creating biblio node
+  */
+  function createBiblioNode($type = 100) {
+    $schema = drupal_get_schema('biblio');
+    foreach ($schema['fields'] as $name => $values) {
+      if ($values['type'] == 'int') continue;
+      switch ($values['type']) {
+        case 'varchar':
+          $length = $values['length'];
+          break;
+        case 'text':
+          $length = 1000;
+          break;
+      }
+      $biblio_fields["$name"] = $name;
+    }
+    $settings = array(
+      'title' => 'Biblio Title',
+      'type' => 'biblio', // This replaces the default type
+      'biblio_type' => $type, // This appends a new field.
+      'biblio_year' => 2009,
+      'biblio_contributors' => array(0 => array('name' => 'Ron J. Jeromezzzzzz',  'auth_type' => 1, 'auth_category' => 1),
+                                     1 => array('name' => 'John Smithzzzzzz',  'auth_type' => 1, 'auth_category' => 1),
+                                     2 => array('name' => 'George W. Bushzzzzzz',  'auth_type' => 1, 'auth_category' => 1)),
+      'biblio_keywords' => array('biblio_keywords')
+    );
+    $settings = array_merge($biblio_fields, $settings);
+
+    $node = $this->drupalCreateNode($settings);
+    return $node;
+  }
+} 
+
+class SCFCollectionsNodeCreationTestCase extends SCFCollectionsWebTestCase {
+
+  public static function getInfo(){
+    return array(
+      'name' => 'SCF Collections - Collection Node Creation',
+      'description' => 'Tests that a Collection node type has been created',
+      'group' => 'SCF',
+    ); 
+  }
+
+  function testCollectionNodeCreation() {
+     // Create a node.
+    $edit = array();
+    $node_type = 'collection';
+    $edit['title'] = 'Collection Title';
+    $this->drupalPost('node/add/collection', $edit, t('Save'));
+    $this->assertText(t('Collection @title has been created.', array('@title' => $edit['title'])));
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+    $this->assertEqual($node->title, $edit['title']);
+    $this->assertEqual($node->type, $node_type);
+  }
+
+  /**
+    * TODO: This needs refactoring. Wasn't able to post [nid:xxx] to html form 
+  */
+  function testCollectionBiblioReference() {
+    $edit = array();
+    $edit['title'] = 'Collection Title';
+    $edit['type'] = 'collection';
+    $edit['field_papers'] = array(LANGUAGE_NONE => array(0 => array('nid' => $this->biblio_node->nid)));
+    $node = $this->drupalCreateNode($edit); 
+    $this->assertNotNull($node->field_papers);
+  }
+}
+
+class SCFLibraryTopicQueueNodeCreationTestCase extends SCFCollectionsWebTestCase {
+
+  public static function getInfo(){
+    return array(
+      'name' => 'SCF Collections - Topic Queue Node Creation',
+      'description' => 'Tests that a Topic Queue node type has been created',
+      'group' => 'SCF',
+    ); 
+  }
+
+  /**
+    * Test the creation of a topic queue node
+  */
+  function testTopicQueueNodeCreation() {
+    $edit = array();
+    $edit['title'] = 'Topic Title';
+    $edit['type'] = 'topic-queue';
+    $node = $this->drupalCreateNode($edit);
+    $this->assertEqual($node->title, $edit['title']);
+    $this->assertEqual($node->type, $edit['type']);
+  } 
+
+  /**
+    * Test the node reference fields of topic queue
+  */
+  function testTopicQueueReferences() {
+    $edit = array();
+    $accepted_node = $this->createBiblioNode();
+    $rejected_node = $this->createBiblioNode();
+    $not_reviewed_node = $this->createBiblioNode();
+    $edit['title'] = 'Collection Title';
+    $edit['type'] = 'topic-queue';
+    $edit['field_accepted_nodes'] = array(LANGUAGE_NONE => array(0 => array('nid' => $accepted_node->nid)));
+    $edit['field_rejected_nodes'] = array(LANGUAGE_NONE => array(0 => array('nid' => $rejected_node->nid)));
+    $edit['field_not_reviewed_nodes'] = array(LANGUAGE_NONE => array(0 => array('nid' => $not_reviewed_node->nid)));
+    $node = $this->drupalCreateNode($edit); 
+    $this->assertNotNull($node->field_accepted_nodes); 
+    $this->assertNotNull($node->field_rejected_nodes); 
+    $this->assertNotNull($node->field_not_reviewed_nodes); 
+  }
+}
+
+class SCFLibraryAPITestCase extends SCFCollectionsWebTestCase {
+  protected $biblio_nodes;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'SCF Collections - API Tests',
+      'description' => 'Tests SCF Library API hooks',
+      'group' => 'SCF',
+    ); 
+  }
+
+  function setUp() {
+    // Enable any module that you will need in your tests.
+    $this->biblio_nodes = array( 
+      0 => $this->createBiblioNode(),
+      1 => $this->createBiblioNode(),
+      2 => $this->createBiblioNode(),
+    ); 
+  }
+
+  /**
+    * Test scf_collections_add_to_queue
+  */
+  function testAddToQueueHook() {
+    $queue_nodes = array();
+    foreach($this->biblio_nodes as $node) {
+      $queue_nodes[] = $node->nid;
+    }
+    
+    //Create Node
+    $edit = array();
+    $edit['title'] = 'Topic Title';
+    $this->drupalPost('node/add/topic-queue', $edit, t('Save'));
+    $this->assertText(t('Topic Queue @title has been created.', array('@title' => $edit['title'])));
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+    $this->assertNotEqual($node,FALSE);
+    //Test Not Reviewed
+    scf_collections_add_to_queue($queue_nodes,$node->nid,'not_reviewed');
+    $node = node_load($node->nid);
+    $this->assertNotNull($node->field_not_reviewed_nodes);
+    //Test Accepted
+    scf_collections_add_to_queue($queue_nodes,$node->nid,'accepted');
+    $this->assertNotNull($node->field_accepted_nodes);
+    //Test Rejected
+    scf_collections_add_to_queue($queue_nodes,$node->nid,'rejected');
+    $this->assertNotNull($node->field_rejected_nodes);
+  }
+}
+
+/*
+class SCFCollectionsTestViews extends DrupalWebTestCase {
+  protected $biblio_node;
+
+  public static function getInfo() {
+    return array(
+      'name' => 'SCF Collections - Views Tests',
+      'description' => 'Tests SCF Library Views (moderation queue)',
+      'group' => 'SCF',
+    ); 
+}
+*/
+  
+
+?>

@@ -1,6 +1,27 @@
 <?php
-class SCFBiblioQueryNodeCreationTestCase extends DrupalWebTestCase {
-  protected $biblio_node;
+
+class SCFBiblioQueryWebTestCase extends DrupalWebTestCase {
+  protected $topic_queue_node;
+  function setUp() {
+    // Enable any module that you will need in your tests.
+    parent::setUp('scf_biblio_query');
+    $web_user = $this->drupalCreateUser(array('create biblio_topic_query content', 'create topic_queue content'));
+    $this->drupalLogin($web_user);
+    $this->createTopicQueueNode();
+  }
+
+  /**
+    * Creates a topic queue node (needed for reference validation)
+  */
+  protected function createTopicQueueNode() {
+    $edit = array();
+    $edit["title"] = "Test Topic Queue";
+    $this->drupalPost('node/add/topic-queue', $edit, t('Save'));
+    $this->topic_queue_node = $this->drupalGetNodeByTitle($edit['title']);
+  }
+}
+
+class SCFBiblioQueryNodeCreationTestCase extends SCFBiblioQueryWebTestCase{
 
   public static function getInfo(){
     return array(
@@ -8,13 +29,6 @@ class SCFBiblioQueryNodeCreationTestCase extends DrupalWebTestCase {
       'description' => 'Tests that a Biblio Query node type has been created',
       'group' => 'SCF',
     ); 
-  }
-
-  function setUp() {
-    // Enable any module that you will need in your tests.
-    parent::setUp('scf_biblio_query');
-    $web_user = $this->drupalCreateUser(array('create biblio_topic_query content'));
-    $this->drupalLogin($web_user);
   }
 
   function testBiblioTopicQueryNodeCreation() {
@@ -27,6 +41,7 @@ class SCFBiblioQueryNodeCreationTestCase extends DrupalWebTestCase {
     $edit["field_queued[und][0][value]"] = 1;
     $edit["field_description[und][0][value]"] = 'Test Description';
     $edit["field_modified[und][0][value]"] = time();
+    $edit["field_topic_queue[und][0][nid]"] = '[nid: ' . $this->topic_queue_node->nid . ']';
     $this->drupalPost('node/add/biblio-topic-query', $edit, t('Save'));
     $this->assertText(t('@title has been created.', array('@title' => $edit['title'])));
     // Check that the node exists in the database.
@@ -35,8 +50,7 @@ class SCFBiblioQueryNodeCreationTestCase extends DrupalWebTestCase {
   }
 }
 
-class SCFBiblioQueryTestPubmedQuery extends DrupalWebTestCase {
-  protected $topic_queue_node;
+class SCFBiblioQueryTestPubmedQuery extends SCFBiblioQueryWebTestCase{
 
   public static function getInfo(){
     return array(
@@ -44,14 +58,6 @@ class SCFBiblioQueryTestPubmedQuery extends DrupalWebTestCase {
       'description' => 'Creates a query node and tests against the Biblio Pubmed interface (BiblioEntrezPubmedArticle)',
       'group' => 'SCF',
     ); 
-  }
-
-  function setUp() {
-    // Enable any module that you will need in your tests.
-    parent::setUp('scf_biblio_query');
-    $web_user = $this->drupalCreateUser(array('create biblio_topic_query content', 'create topic_queue content'));
-    $this->drupalLogin($web_user);
-    $this->createTopicQueueNode();
   }
 
   function testBiblioTopicQueryNodeCreation() {
@@ -73,16 +79,6 @@ class SCFBiblioQueryTestPubmedQuery extends DrupalWebTestCase {
     // Execute this query and import some pubmed queries.
     $initial_biblio_count = $this->getBiblioNodeCount();
     $this->assertEqual($initial_biblio_count,0);
-  }
-
-  /**
-    * Creates a topic queue node (needed for reference validation)
-  */
-  protected function createTopicQueueNode() {
-    $edit = array();
-    $edit["title"] = "Test Topic Queue";
-    $this->drupalPost('node/add/topic-queue', $edit, t('Save'));
-    $this->topic_queue_node = $this->drupalGetNodeByTitle($edit['title']);
   }
 
   /**

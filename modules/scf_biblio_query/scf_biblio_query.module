@@ -7,6 +7,53 @@
 include_once('scf_biblio_query.features.inc');
 
 define('BIBLIO_QUERY_LIMIT', 10); //TODO: Remember to increase this!
+define('SCF_BIBLIO_QUERY_NODE_TYPE', 'biblio_topic_query');
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function scf_biblio_query_cron_queue_info() {
+  $queues['scf_biblio_query_feeds'] = array(
+    'worker callback' => 'scf_biblio_query_execute',
+    'time' => 60,
+  );
+  return $queues;
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Queues news feeds for updates once their refresh interval has elapsed.
+ */
+function scf_biblio_query_cron() {
+  // Only query pubmed between 4am and 5am.
+  /** Temporarily Disable
+  if (date('H') != 4) {
+    return;
+  }
+  **/
+  $checked = REQUEST_TIME - 3600;
+  $never = 0;
+  $query = new EntityFieldQuery;
+  $result = $query
+    ->entityCondition('entity_type', 'node')
+    ->propertyCondition('type', SCF_BIBLIO_QUERY_NODE_TYPE)
+    ->fieldCondition('field_queued','value', 0)
+    ->fieldCondition('field_checked','value', $checked, '<')
+    ->fieldCondition('field_refresh','value', $never, '!=')
+    ->execute();
+  $queue = DrupalQueue::get('scf_biblio_query_feeds');
+  if(empty($result['node'])) {
+    return;
+  }
+  foreach($result['node'] as $row) {
+    $feed = node_load($row->nid);
+    if($feed && $queue->createItem($feed)) {
+      $feed->field_queued[LANGUAGE_NONE][0]['value'] = REQUEST_TIME;
+      node_save($feed);
+    }
+  }
+}
 
 /**
  * Checks a PubMed feed for new items.
@@ -15,6 +62,7 @@ define('BIBLIO_QUERY_LIMIT', 10); //TODO: Remember to increase this!
  *   An object describing the feed to be refreshed.
  */
 function scf_biblio_query_execute($feed) {
+  dd('hi');
   if(!$feed) {
     return;
   }
@@ -36,7 +84,6 @@ function scf_biblio_query_execute($feed) {
   // for today yet, or it might just be partial.
   // This is useful when running the import manually.
   $minDate = $minDate == date('Y/m/d') ? date('Y/m/d', strtotime('-1 day')) : $minDate;
-  //$maxDate = date('Y/m/d', strtotime('-2 days'));
   $maxDate = date('Y/m/d');
   watchdog('scf_biblio_query', 'Querying pubmed with date ' . $minDate . ' to ' . $maxDate . '.');
 
