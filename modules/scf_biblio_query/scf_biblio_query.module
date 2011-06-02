@@ -1,0 +1,108 @@
+<?php
+/**
+ * @file
+ * Code for the scf_biblio_query feature.
+ */
+
+include_once('scf_biblio_query.features.inc');
+
+define('BIBLIO_QUERY_LIMIT', 10); //TODO: Remember to increase this!
+
+/**
+ * Checks a PubMed feed for new items.
+ *
+ * @param $feed node
+ *   An object describing the feed to be refreshed.
+ */
+function scf_biblio_query_execute($feed) {
+  if(!$feed) {
+    return;
+  }
+  module_load_include('php', 'biblio_pm', 'EntrezClient');
+  module_load_include('php', 'biblio_pm', 'EntrezPubmedArticle');
+  module_load_include('inc', 'scf_biblio_query', 'scf_biblio_query.import');
+  require_once drupal_get_path('module', 'biblio') .'/includes/biblio.import.export.inc';
+
+  // Establish the date range for the query.
+  // @todo should we not try to query any paper which is older than the previous
+  // [Saturday] or begining of the POW period?
+  $checked = isset($feed->field_checked[LANGUAGE_NONE][0]['value']) ? $node->field_checked[LANGUAGE_NONE][0]['value'] : 0;
+  $query = isset($feed->body[LANGUAGE_NONE][0]['value']) ? $feed->body[LANGUAGE_NONE][0]['value'] : NULL;
+
+  $minDate = date('Y/m/d', $checked);
+  // Do not fetch papers which are older than 7 days.
+  $minDate = $minDate < date('Y/m/d', strtotime('-7 days')) ? date('Y/m/d', strtotime('-7 days')) : $minDate;
+  // If the mindate is today, set it to yesterday as there are likely no papers
+  // for today yet, or it might just be partial.
+  // This is useful when running the import manually.
+  $minDate = $minDate == date('Y/m/d') ? date('Y/m/d', strtotime('-1 day')) : $minDate;
+  //$maxDate = date('Y/m/d', strtotime('-2 days'));
+  $maxDate = date('Y/m/d');
+  watchdog('scf_biblio_query', 'Querying pubmed with date ' . $minDate . ' to ' . $maxDate . '.');
+
+  $Eclient = new BiblioEntrezClient;
+  $Eclient->setTerm($feed->query);
+  $Eclient->setReturnMax(BIBLIO_QUERY_LIMIT);
+  $Eclient->setDateRange($minDate, $maxDate);
+  $results = $Eclient->search(0);
+
+  $node = new stdClass();
+  $data = new BiblioEntrezPubmedArticle();
+  // Counter for imported papers.
+  $imported = 0;
+  // Node ID's for queue
+  $queue_nids = array();
+
+  foreach($results->IdList->Id as $pmid) {
+    $article = $Eclient->fetch((string)$pmid)->PubmedArticle;
+    if (!$article) {
+      watchdog('pow_import_' . $pmid, 'PMID ' . $pmid . ' error during import, data could not be parsed according to expected XML schema.', array(), WATCHDOG_ERROR);
+      continue;
+    }
+    $node = $data->setArticle($article)->getBiblioAsObject();
+    if (isset($node)) {
+      if (!empty($terms)) {
+        if (!isset($node->taxonomy)) $node->taxonomy = array();
+        $node->taxonomy = array_merge($terms, $node->taxonomy);
+      }
+      if ($dup = biblio_pm_check_pmid($node->biblio_pubmed_id)) {
+        watchdog('scf_biblio_query_' . $node->biblio_pubmed_id, 'The publication @url already exists and was not reimported via the automatic query.', array('@url' => url('node/' . $dup)));
+      }
+      else {
+        // Attempt to import the publication.
+        try {
+          biblio_save_node($node);
+          // Add node to topic queue
+          $queue_nids[] = $node->nid;
+
+          watchdog('scf_biblio_query_' . $node->biblio_pubmed_id, 'PMID ' . $node->biblio_pubmed_id . ' imported via automatic query.');
+          $imported++;
+        }
+        catch (Exception $e) {
+          watchdog('scf_biblio_query_' . $node->biblio_pubmed_id, 'Error during import of the publication ID ' . $node->biblio_pubmed_id, array(), WATCHDOG_WARNING);
+          watchdog_exception('scf_biblio_query', $e);
+        }
+      }
+      $node = NULL;
+    }
+  }
+  drupal_set_message($imported . ' new papers have been imported');
+
+  // Add nodes to moderation queue.
+  if(!empty($feed->field_topic_queue[LANGUAGE_NONE])) {
+    foreach($feed->field_topic_queue[LANGUAGE_NONE] as $topic_queue) {
+      if(!empty($topic_queue['nid'])) {
+        scf_collections_add_to_queue($queue_nids,$topic_queue['nid']);
+      }
+    }
+  }
+
+  // Indicates that this feed has been checked. This assumes the pubmed query
+  // succeeded.
+  // @todo detect when the query failed and remove the item from the queue but
+  // don't update the checked time so the next request checks back from that
+  // time onwards
+  $feed->field_checked[LANGUAGE_NONE][0]['value'] = REQUEST_TIME;
+  $feed->field_queued[LANGUAGE_NONE][0]['value'] = 0;
+  return node_save($feed);
+}

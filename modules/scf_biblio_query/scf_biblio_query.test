@@ -1,0 +1,99 @@
+<?php
+class SCFBiblioQueryNodeCreationTestCase extends DrupalWebTestCase {
+  protected $biblio_node;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'SCF Biblio Query Node Creation',
+      'description' => 'Tests that a Biblio Query node type has been created',
+      'group' => 'SCF',
+    ); 
+  }
+
+  function setUp() {
+    // Enable any module that you will need in your tests.
+    parent::setUp('scf_biblio_query');
+    $web_user = $this->drupalCreateUser(array('create biblio_topic_query content'));
+    $this->drupalLogin($web_user);
+  }
+
+  function testBiblioTopicQueryNodeCreation() {
+    // Create a node.
+    $edit = array();
+    $edit["title"] = 'Topic Query Title';
+    $edit["body[und][0][value]"] = 'Test Body';
+    $edit["field_refresh[und][0][value]"] = 3600;
+    $edit["field_checked[und][0][value]"] = 1;
+    $edit["field_queued[und][0][value]"] = 1;
+    $edit["field_description[und][0][value]"] = 'Test Description';
+    $edit["field_modified[und][0][value]"] = time();
+    $this->drupalPost('node/add/biblio-topic-query', $edit, t('Save'));
+    $this->assertText(t('@title has been created.', array('@title' => $edit['title'])));
+    // Check that the node exists in the database.
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+    $this->assertTrue($node, t('Node found in database.'));
+  }
+}
+
+class SCFBiblioQueryTestPubmedQuery extends DrupalWebTestCase {
+  protected $topic_queue_node;
+
+  public static function getInfo(){
+    return array(
+      'name' => 'SCF Biblio Query Test Pubmed Query',
+      'description' => 'Creates a query node and tests against the Biblio Pubmed interface (BiblioEntrezPubmedArticle)',
+      'group' => 'SCF',
+    ); 
+  }
+
+  function setUp() {
+    // Enable any module that you will need in your tests.
+    parent::setUp('scf_biblio_query');
+    $web_user = $this->drupalCreateUser(array('create biblio_topic_query content', 'create topic_queue content'));
+    $this->drupalLogin($web_user);
+    $this->createTopicQueueNode();
+  }
+
+  function testBiblioTopicQueryNodeCreation() {
+    // Create a node.
+    $edit = array();
+    $edit["title"] = 'Topic Query Title';
+    $edit["body[und][0][value]"] = 'pain'; //PRF Test :)
+    $edit["field_refresh[und][0][value]"] = 3600;
+    $edit["field_checked[und][0][value]"] = 0;
+    $edit["field_queued[und][0][value]"] = 0;
+    $edit["field_description[und][0][value]"] = 'Test Description';
+    $edit["field_modified[und][0][value]"] = time();
+    $edit["field_topic_queue[und][0][nid]"] = '[nid: ' . $this->topic_queue_node->nid . ']';
+    $this->drupalPost('node/add/biblio-topic-query', $edit, t('Save'));
+    $this->assertText(t('@title has been created.', array('@title' => $edit['title'])));
+    // Check that the node exists in the database.
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+    $this->assertTrue($node, t('Node found in database.'));
+    // Execute this query and import some pubmed queries.
+    $initial_biblio_count = $this->getBiblioNodeCount();
+    $this->assertEqual($initial_biblio_count,0);
+  }
+
+  /**
+    * Creates a topic queue node (needed for reference validation)
+  */
+  protected function createTopicQueueNode() {
+    $edit = array();
+    $edit["title"] = "Test Topic Queue";
+    $this->drupalPost('node/add/topic-queue', $edit, t('Save'));
+    $this->topic_queue_node = $this->drupalGetNodeByTitle($edit['title']);
+  }
+
+  /**
+    * Returns the number of biblio nodes found
+  */
+  protected function getBiblioNodeCount() {
+    $query = new EntityFieldQuery;
+    $result = $query
+    ->entityCondition('entity_type', 'node')
+    ->propertyCondition('type','biblio')
+    ->count();
+    return $query->execute();
+  }
+}

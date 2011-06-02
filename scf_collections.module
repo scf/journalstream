@@ -1,0 +1,137 @@
+<?php
+/**
+ * @file
+ * Code for the scf_library feature.
+ */
+
+include_once('scf_collections.features.inc');
+include_once('scf_collections.features.field.inc');
+
+/** Constants **/
+define('SCFC_TOPIC_QUEUE_TYPE','topic_queue'); //Node type of topic queue
+define('SCF_COLLECTIONS_QUEUE_VIEW', 'scf_collections_queue');
+define('SCFC_NOT_REVIEWED','not_reviewed');
+define('SCFC_ACCEPTED', 'accepted');
+define('SCFC_REJECTED', 'rejected');
+
+
+/**
+ * Implements hook_menu()
+ */
+function scf_collections_menu() {
+  $items = array();
+  $items['node/%node/not_reviewed'] = array(
+    'title' => 'Not Reviewed',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'scf_collections_queue_view',
+    'page arguments' => array(1,2),
+    'access callback' => 'scf_collections_local_task_loader',
+    'access arguments' => array(1),
+    'weight' => 5,
+  );
+  $items['node/%node/accepted'] = array(
+    'title' => 'Accepted',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'scf_collections_queue_view',
+    'page arguments' => array(1,2),
+    'access callback' => 'scf_collections_local_task_loader',
+    'access arguments' => array(1),
+    'weight' => 6,
+  );
+  $items['node/%node/rejected'] = array(
+    'title' => 'Rejected',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'scf_collections_queue_view',
+    'page arguments' => array(1,2),
+    'access callback' => 'scf_collections_local_task_loader',
+    'access arguments' => array(1),
+    'weight' => 7,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function scf_collections_admin_paths() {
+  $paths = array( 
+    'node/*/not_reviewed' => TRUE,
+    'node/*/accepted' => TRUE,
+    'node/*/rejected' => TRUE,
+  );
+  return $paths;
+}
+
+/** View Related Hooks **/
+
+/**
+ * Renders the correct view based on path.
+ * @param $node
+ *  The Topic Query Node
+ * @param $review_status
+ *  The review status of the node
+ */
+function scf_collections_queue_view($node, $review_status) {
+  $view = views_get_view(SCF_COLLECTIONS_QUEUE_VIEW);
+  $output = '';
+  $statuses = array('not_reviewed','accepted','rejected');
+  $view_output = array();
+  if(in_array($review_status,$statuses)) {
+    $view_output = $view->execute_display($review_status, array($node->nid));
+  }
+  return (!empty($view_output['content'])) ? $view_output['content'] : '';
+}
+
+/** 
+ * Access callback for ONLY displaying the scf_collections local tasks
+ * if the node type is SCFC_TOPIC_QUEUE_TYPE 
+ */
+function scf_collections_local_task_loader($node) {
+  global $user;
+
+  //Check node access perms
+  $access_granted = node_access('update', $node);
+
+  if($node->type == SCFC_TOPIC_QUEUE_TYPE && $access_granted) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/** Database Related Hooks **/
+
+/**
+ * Callback used for binding a referenced (biblio) node to a Topic Queue
+ *
+ * @param $nids
+ *  An indexed array of Node IDs to append to queue.
+ * @param $queue_nid
+ *  The Node ID of the topic queue.
+ * @param $queue
+ *   The queue status to append to. Options are:
+ *    SCFC_NOT_REVIEWED
+ *    SCFC_ACCEPTED
+ *    SCFC_REJECTED
+*/
+function scf_collections_add_to_queue($nids,$queue_nid,$queue = SCFC_NOT_REVIEWED) {
+  $qnode = node_load($queue_nid);
+  if(!$qnode) {
+    return;
+  }
+  foreach($nids as $nid) {
+    switch($queue) {
+      case SCFC_ACCEPTED:
+        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
+        break;
+      case SCFC_REJECTED:
+        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
+        break;
+      default:
+        $qnode->field_not_reviewed_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
+        break;
+    }
+  }
+  return node_save($qnode);
+}
