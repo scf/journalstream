@@ -1,0 +1,16 @@
+div.node-moderation-form-wrapper {
+  display: block;
+  float: left;
+  margin: 0 10px auto auto;
+  z-index: 999;
+}
+
+.node-moderation-form-wrapper .form-item {
+  padding: 0 0 0 0;
+}
+
+div.view-scf-collections-queue .node {
+  margin-left: 10px;
+  clear: right;
+  display: block;
+}

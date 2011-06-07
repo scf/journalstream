@@ -135,7 +135,7 @@ class SCFLibraryAPITestCase extends SCFCollectionsWebTestCase {
   }
 
   function setUp() {
-    // Enable any module that you will need in your tests.
+    parent::setUp('scf_collections');
     $this->biblio_nodes = array( 
       0 => $this->createBiblioNode(),
       1 => $this->createBiblioNode(),
@@ -162,13 +162,15 @@ class SCFLibraryAPITestCase extends SCFCollectionsWebTestCase {
     //Test Not Reviewed
     scf_collections_add_to_queue($queue_nodes,$node->nid,'not_reviewed');
     $node = node_load($node->nid);
-    $this->assertNotNull($node->field_not_reviewed_nodes);
+    $this->assertFalse(empty($node->field_not_reviewed_nodes));
     //Test Accepted
+    $node = node_load($node->nid);
     scf_collections_add_to_queue($queue_nodes,$node->nid,'accepted');
-    $this->assertNotNull($node->field_accepted_nodes);
+    $this->assertFalse(empty($node->field_accepted_nodes));
     //Test Rejected
+    $node = node_load($node->nid);
     scf_collections_add_to_queue($queue_nodes,$node->nid,'rejected');
-    $this->assertNotNull($node->field_rejected_nodes);
+    $this->assertFalse(empty($node->field_rejected_nodes));
   }
 }
 

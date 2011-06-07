@@ -47,6 +47,15 @@ function scf_collections_menu() {
     'access arguments' => array(1),
     'weight' => 7,
   );
+  $items['node/%node/preview'] = array(
+    'title' => 'Preview',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'scf_collections_queue_view',
+    'page arguments' => array(1,2),
+    'access callback' => 'scf_collections_local_task_loader',
+    'access arguments' => array(1),
+    'weight' => 8,
+  );
   return $items;
 }
 
@@ -74,13 +83,41 @@ function scf_collections_admin_paths() {
 function scf_collections_queue_view($node, $review_status) {
   $view = views_get_view(SCF_COLLECTIONS_QUEUE_VIEW);
   $output = '';
-  $statuses = array('not_reviewed','accepted','rejected');
+  $statuses = array('not_reviewed','accepted','rejected','preview');
   $view_output = array();
   if(in_array($review_status,$statuses)) {
     $view_output = $view->execute_display($review_status, array($node->nid));
   }
   return (!empty($view_output['content'])) ? $view_output['content'] : '';
 }
+
+/**
+ * Add default node template to theme suggestion
+**/
+function scf_collections_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'scf_collections') . '/templates';
+  $theme_registry_copy = $theme_registry;       // munge on a copy
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'scf_collections', $mod_path);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  $hooks = array('node');
+  foreach ($hooks as $h) {
+    _scf_collections_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+  }
+  // Add Theme hook for altering view
+  // Code from http://drupal.org/node/303586#comment-2552974
+  //$theme_registry['views_view_row_node__papers_of_the_week']['preprocess functions'][] = 'pow_preprocess_views_view_row_node__papers_of_the_week';
+}
+
+/**
+ * Helper function for re-ordering arrays (needed by theme_registry_alter)
+**/
+function _scf_collections_insert_after_first_element(&$a, $element) {
+  if(is_array($a)) {
+    $first_element = array_shift($a);
+    array_unshift($a, $first_element, $element);
+  }
+}
+
 
 /** 
  * Access callback for ONLY displaying the scf_collections local tasks
@@ -105,7 +142,117 @@ function scf_collections_local_task_loader($node) {
 */
 function scf_collections_form_alter(&$form, &$form_state, $form_id) {
   //Hide elements from the topic queue node form
-  dd($form_id);
+  if($form_id == 'topic_queue_node_form') {
+    /*
+    unset($form['field_not_reviewed_nodes']);
+    unset($form['field_accepted_nodes']);
+    unset($form['field_rejected_nodes']);
+    */
+  }
+}
+
+/**
+* Implements hook_preprocess_node().
+*
+* This function injects a moderation form to the normal node teaser view
+*/
+function scf_collections_preprocess_node(&$vars) {
+  if($vars['view_mode'] == 'teaser_moderation') {
+    $vars['theme_hook_suggestions'][] = 'node__teaser_moderation';
+    $node = node_load($vars['nid']);
+    $node_view = node_view($node, 'teaser');
+    $parent_node = menu_get_object();
+    $vars['content'] = array();
+    $vars['moderation_form']['#markup'] = '<div class="node-moderation-form-wrapper">';
+    $vars['moderation_form']['#markup'] .= drupal_render(drupal_get_form('scf_collections_moderation_form', array('parent_node' => $parent_node, 'node' => $node)));
+    $vars['moderation_form']['#markup'] .= '</div>';
+    $vars['content']['#markup'] = drupal_render($node_view);
+  }
+}
+
+/**
+* Implements hook_entity_info_alter().
+* Adds a moderation form view for a node teaser.
+*/
+function scf_collections_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes']['teaser_moderation'] = array(
+    'label' => t('SCF Collection Moderation'),
+    'custom settings' => TRUE,
+  );
+} 
+
+/**
+ * Implements hook_form()
+ * Renders the node moderation form
+*/
+function scf_collections_moderation_form($form, &$form_state, $extra = null) {
+  $review_statuses = array('not_reviewed' => 'Not Reviewed', 'accepted' => 'Accepted', 'rejected' => 'Rejected');
+  $nid = isset($extra['node']->nid) ? $extra['node']->nid : '';
+  $pnid = isset($extra['parent_node']->nid) ? $extra['parent_node']->nid : ''; 
+  $default = _scf_collections_get_node_queue($extra['parent_node'], $nid);
+  $form['moderation_form']['review_status'] = array(
+    '#title' => 'paper review status',
+    '#type' => 'radios',
+    '#options' => $review_statuses,
+    '#default_value' => $default,
+    '#ajax' => array(
+      'callback' => 'scf_collections_moderation_form_callback', 
+    ),
+  );
+  $form['parent_node'] = array('#type' => 'value', '#value' => $pnid);
+  $form['node'] = array('#type' => 'value', '#value' => $nid);
+  return $form;
+}
+
+/**
+ * Callback for handling moderation calls
+ */
+function scf_collections_moderation_form_callback($form, $form_state) {
+  //Add the node to the correct queue
+  scf_collections_add_to_queue(array($form_state['values']['node']), $form_state['values']['parent_node'], $form_state['values']['review_status']);
+  // Dom element containing node
+  $element = "#node-" . $form_state['values']['node'] . "-moderation-form"; 
+  $commands = array();
+  //Hide the calling node form
+  //$commands[] = ajax_command_invoke($element, 'fadeOut');
+  $commands[] = ajax_command_remove($element);
+  return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+
+
+/**
+ * Helper function for determining which queue a node is in
+ * @param $parent_node
+ *   Parent node object to search
+ * @param $nid
+ *   Nid of node to search by
+*/
+function _scf_collections_get_node_queue($parent_node, $nid) {
+  //Iterate through Not Reviewed nodes
+  if(!empty($parent_node->field_not_reviewed_nodes[LANGUAGE_NONE])) {
+    foreach($parent_node->field_not_reviewed_nodes[LANGUAGE_NONE] as $row) {
+      if($row['nid'] == $nid) {
+        return 'not_reviewed';
+      }
+    } 
+  }
+  //Iterate Through Accepted Nodes
+  if(!empty($parent_node->field_accepted_nodes[LANGUAGE_NONE])) {
+    foreach($parent_node->field_accepted_nodes[LANGUAGE_NONE] as $row) {
+      if($row['nid'] == $nid) {
+        return 'accepted';
+      }
+    } 
+  }
+  //Iterate Through Rejected Nodes
+  if(!empty($parent_node->field_rejected_nodes[LANGUAGE_NONE])) {
+    foreach($parent_node->field_rejected_nodes[LANGUAGE_NONE] as $row) {
+      if($row['nid'] == $nid) {
+        return 'rejected';
+      }
+    } 
+  }
 }
 
 /** Database Related Hooks **/
@@ -123,23 +270,50 @@ function scf_collections_form_alter(&$form, &$form_state, $form_id) {
  *    SCFC_ACCEPTED
  *    SCFC_REJECTED
 */
-function scf_collections_add_to_queue($nids,$queue_nid,$queue = SCFC_NOT_REVIEWED) {
+function scf_collections_add_to_queue($nids, $queue_nid, $queue = SCFC_NOT_REVIEWED) {
   $qnode = node_load($queue_nid);
   if(!$qnode) {
     return;
   }
   foreach($nids as $nid) {
+    
+    $this_nid = array('nid' => $nid);
+    // Remove node from queues 
+    if(!empty($qnode->field_accepted_nodes[LANGUAGE_NONE])) {
+      foreach($qnode->field_accepted_nodes[LANGUAGE_NONE] as $k => $v) {
+        if($v['nid'] == $nid) {
+          unset($qnode->field_accepted_nodes[LANGUAGE_NONE][$k]);
+        }
+      }
+    }
+    if(!empty($qnode->field_not_reviewed_nodes[LANGUAGE_NONE])) {
+      foreach($qnode->field_not_reviewed_nodes[LANGUAGE_NONE] as $k => $v) {
+        if($v['nid'] == $nid) {
+          unset($qnode->field_not_reviewed_nodes[LANGUAGE_NONE][$k]);
+        }
+      }
+    }
+    if(!empty($qnode->field_rejected_nodes[LANGUAGE_NONE])) {
+      foreach($qnode->field_rejected_nodes[LANGUAGE_NONE] as $k => $v) {
+        if($v['nid'] == $nid) {
+          unset($qnode->field_rejected_nodes[LANGUAGE_NONE][$k]); 
+        }
+      }
+    }
+
+    //Add Node to new queue
     switch($queue) {
       case SCFC_ACCEPTED:
-        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
+        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = $this_nid; 
         break;
       case SCFC_REJECTED:
-        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
+        $qnode->field_rejected_nodes[LANGUAGE_NONE][] = $this_nid; 
         break;
       default:
-        $qnode->field_not_reviewed_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
+        $qnode->field_not_reviewed_nodes[LANGUAGE_NONE][] = $this_nid; 
         break;
     }
   }
-  return node_save($qnode);
+  $result = node_save($qnode);
+  return $result;
 }

@@ -6,7 +6,7 @@
 
 include_once('scf_biblio_query.features.inc');
 
-define('BIBLIO_QUERY_LIMIT', 10); //TODO: Remember to increase this!
+define('BIBLIO_QUERY_LIMIT', 200); //TODO: Remember to increase this!
 define('SCF_BIBLIO_QUERY_NODE_TYPE', 'biblio_topic_query');
 
 /**
@@ -62,7 +62,6 @@ function scf_biblio_query_cron() {
  *   An object describing the feed to be refreshed.
  */
 function scf_biblio_query_execute($feed) {
-  dd('hi');
   if(!$feed) {
     return;
   }
@@ -74,7 +73,7 @@ function scf_biblio_query_execute($feed) {
   // Establish the date range for the query.
   // @todo should we not try to query any paper which is older than the previous
   // [Saturday] or begining of the POW period?
-  $checked = isset($feed->field_checked[LANGUAGE_NONE][0]['value']) ? $node->field_checked[LANGUAGE_NONE][0]['value'] : 0;
+  $checked = isset($feed->field_checked[LANGUAGE_NONE][0]['value']) ? $feed->field_checked[LANGUAGE_NONE][0]['value'] : time();
   $query = isset($feed->body[LANGUAGE_NONE][0]['value']) ? $feed->body[LANGUAGE_NONE][0]['value'] : NULL;
 
   $minDate = date('Y/m/d', $checked);
@@ -99,7 +98,7 @@ function scf_biblio_query_execute($feed) {
   $imported = 0;
   // Node ID's for queue
   $queue_nids = array();
-
+  dd($results);
   foreach($results->IdList->Id as $pmid) {
     $article = $Eclient->fetch((string)$pmid)->PubmedArticle;
     if (!$article) {
