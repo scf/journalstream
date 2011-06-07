@@ -22,7 +22,7 @@ function scf_collections_views_default_views() {
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
-  $handler->display->display_options['title'] = 'Not Reviewed Papers';
+  $handler->display->display_options['title'] = 'Accepted Papers';
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
@@ -43,13 +43,12 @@ function scf_collections_views_default_views() {
   $handler->display->display_options['arguments']['nid']['id'] = 'nid';
   $handler->display->display_options['arguments']['nid']['table'] = 'node';
   $handler->display->display_options['arguments']['nid']['field'] = 'nid';
-  $handler->display->display_options['arguments']['nid']['default_action'] = 'not found';
+  $handler->display->display_options['arguments']['nid']['default_action'] = 'empty';
   $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
   $handler->display->display_options['arguments']['nid']['default_argument_skip_url'] = 0;
   $handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
-  $handler->display->display_options['arguments']['nid']['specify_validation'] = 1;
   $handler->display->display_options['arguments']['nid']['validate']['type'] = 'node';
   $handler->display->display_options['arguments']['nid']['validate_options']['types'] = array(
     'topic_queue' => 'topic_queue',
@@ -75,6 +74,8 @@ function scf_collections_views_default_views() {
 
   /* Display: Not Reviewed */
   $handler = $view->new_display('block', 'Not Reviewed', 'not_reviewed');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['title'] = 'Not Reviewed Papers';
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Content: Not Reviewed Nodes */
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['id'] = 'field_not_reviewed_nodes';
@@ -93,13 +94,15 @@ function scf_collections_views_default_views() {
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['alter']['strip_tags'] = 0;
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['alter']['html'] = 0;
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['element_label_colon'] = 0;
+  $handler->display->display_options['fields']['field_not_reviewed_nodes']['element_wrapper_type'] = 'div';
+  $handler->display->display_options['fields']['field_not_reviewed_nodes']['element_wrapper_class'] = 'niddeous-[field_not_reviewed_nodes-nid]';
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['element_default_classes'] = 1;
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['hide_empty'] = 0;
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['empty_zero'] = 0;
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['click_sort_column'] = 'nid';
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['type'] = 'node_reference_node';
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['settings'] = array(
-    'node_reference_view_mode' => 'teaser',
+    'node_reference_view_mode' => 'teaser_moderation',
   );
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['group_rows'] = 0;
   $handler->display->display_options['fields']['field_not_reviewed_nodes']['delta_offset'] = '0';
@@ -109,6 +112,78 @@ function scf_collections_views_default_views() {
 
   /* Display: Accepted */
   $handler = $view->new_display('block', 'Accepted', 'accepted');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['title'] = 'Accepted Papers';
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Content: Accepted Nodes */
+  $handler->display->display_options['fields']['field_accepted_nodes']['id'] = 'field_accepted_nodes';
+  $handler->display->display_options['fields']['field_accepted_nodes']['table'] = 'field_data_field_accepted_nodes';
+  $handler->display->display_options['fields']['field_accepted_nodes']['field'] = 'field_accepted_nodes';
+  $handler->display->display_options['fields']['field_accepted_nodes']['label'] = '';
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['element_label_colon'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_accepted_nodes']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['click_sort_column'] = 'nid';
+  $handler->display->display_options['fields']['field_accepted_nodes']['type'] = 'node_reference_node';
+  $handler->display->display_options['fields']['field_accepted_nodes']['settings'] = array(
+    'node_reference_view_mode' => 'teaser_moderation',
+  );
+  $handler->display->display_options['fields']['field_accepted_nodes']['group_rows'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['delta_offset'] = '0';
+  $handler->display->display_options['fields']['field_accepted_nodes']['delta_reversed'] = 0;
+  $handler->display->display_options['fields']['field_accepted_nodes']['field_api_classes'] = 0;
+
+  /* Display: Rejected */
+  $handler = $view->new_display('block', 'Rejected', 'rejected');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['title'] = 'Rejected Papers';
+  $handler->display->display_options['defaults']['fields'] = FALSE;
+  /* Field: Content: Rejected Nodes */
+  $handler->display->display_options['fields']['field_rejected_nodes']['id'] = 'field_rejected_nodes';
+  $handler->display->display_options['fields']['field_rejected_nodes']['table'] = 'field_data_field_rejected_nodes';
+  $handler->display->display_options['fields']['field_rejected_nodes']['field'] = 'field_rejected_nodes';
+  $handler->display->display_options['fields']['field_rejected_nodes']['label'] = '';
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['element_label_colon'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['field_rejected_nodes']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['click_sort_column'] = 'nid';
+  $handler->display->display_options['fields']['field_rejected_nodes']['type'] = 'node_reference_node';
+  $handler->display->display_options['fields']['field_rejected_nodes']['settings'] = array(
+    'node_reference_view_mode' => 'teaser_moderation',
+  );
+  $handler->display->display_options['fields']['field_rejected_nodes']['group_rows'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['delta_offset'] = '0';
+  $handler->display->display_options['fields']['field_rejected_nodes']['delta_reversed'] = 0;
+  $handler->display->display_options['fields']['field_rejected_nodes']['field_api_classes'] = 0;
+
+  /* Display: Preview */
+  $handler = $view->new_display('block', 'Preview', 'preview');
+  $handler->display->display_options['defaults']['title'] = FALSE;
+  $handler->display->display_options['title'] = 'Preview';
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Content: Accepted Nodes */
   $handler->display->display_options['fields']['field_accepted_nodes']['id'] = 'field_accepted_nodes';
@@ -139,44 +214,9 @@ function scf_collections_views_default_views() {
   $handler->display->display_options['fields']['field_accepted_nodes']['delta_offset'] = '0';
   $handler->display->display_options['fields']['field_accepted_nodes']['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_accepted_nodes']['field_api_classes'] = 0;
-
-  /* Display: Rejected */
-  $handler = $view->new_display('block', 'Rejected', 'rejected');
-  $handler->display->display_options['defaults']['title'] = FALSE;
-  $handler->display->display_options['title'] = 'Accepted Papers';
-  $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Field: Content: Rejected Nodes */
-  $handler->display->display_options['fields']['field_rejected_nodes']['id'] = 'field_rejected_nodes';
-  $handler->display->display_options['fields']['field_rejected_nodes']['table'] = 'field_data_field_rejected_nodes';
-  $handler->display->display_options['fields']['field_rejected_nodes']['field'] = 'field_rejected_nodes';
-  $handler->display->display_options['fields']['field_rejected_nodes']['label'] = '';
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['element_label_colon'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['field_rejected_nodes']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['empty_zero'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['click_sort_column'] = 'nid';
-  $handler->display->display_options['fields']['field_rejected_nodes']['type'] = 'node_reference_node';
-  $handler->display->display_options['fields']['field_rejected_nodes']['settings'] = array(
-    'node_reference_view_mode' => 'teaser',
-  );
-  $handler->display->display_options['fields']['field_rejected_nodes']['group_rows'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['delta_offset'] = '0';
-  $handler->display->display_options['fields']['field_rejected_nodes']['delta_reversed'] = 0;
-  $handler->display->display_options['fields']['field_rejected_nodes']['field_api_classes'] = 0;
   $translatables['scf_collections_queue'] = array(
     t('Master'),
-    t('Not Reviewed Papers'),
+    t('Accepted Papers'),
     t('more'),
     t('Apply'),
     t('Reset'),
@@ -189,9 +229,11 @@ function scf_collections_views_default_views() {
     t('Not Reviewed Nodes'),
     t('All'),
     t('Not Reviewed'),
+    t('Not Reviewed Papers'),
     t('Accepted'),
     t('Rejected'),
-    t('Accepted Papers'),
+    t('Rejected Papers'),
+    t('Preview'),
   );
   $export['scf_collections_queue'] = $view;
 

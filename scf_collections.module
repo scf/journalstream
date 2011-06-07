@@ -143,11 +143,9 @@ function scf_collections_local_task_loader($node) {
 function scf_collections_form_alter(&$form, &$form_state, $form_id) {
   //Hide elements from the topic queue node form
   if($form_id == 'topic_queue_node_form') {
-    /*
     unset($form['field_not_reviewed_nodes']);
     unset($form['field_accepted_nodes']);
     unset($form['field_rejected_nodes']);
-    */
   }
 }
 

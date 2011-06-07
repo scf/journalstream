@@ -4,7 +4,7 @@
  * scf_collections.features.inc
  */
 
- /**
+/**
  * Implementation of hook_views_api().
  */
 function scf_collections_views_api() {

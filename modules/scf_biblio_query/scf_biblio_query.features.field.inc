@@ -60,6 +60,12 @@ function scf_biblio_query_field_default_fields() {
           'type' => 'text_summary_or_trimmed',
           'weight' => 0,
         ),
+        'teaser_moderation' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
       ),
       'entity_type' => 'node',
       'field_name' => 'body',
@@ -132,6 +138,12 @@ function scf_biblio_query_field_default_fields() {
           'type' => 'hidden',
           'weight' => 0,
         ),
+        'teaser_moderation' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
       ),
       'entity_type' => 'node',
       'field_name' => 'field_block',
@@ -169,7 +181,11 @@ function scf_biblio_query_field_default_fields() {
     ),
     'field_instance' => array(
       'bundle' => 'biblio_topic_query',
-      'default_value' => NULL,
+      'default_value' => array(
+        0 => array(
+          'value' => '0',
+        ),
+      ),
       'deleted' => '0',
       'description' => '',
       'display' => array(
@@ -186,6 +202,12 @@ function scf_biblio_query_field_default_fields() {
           'weight' => 2,
         ),
         'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser_moderation' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
@@ -258,6 +280,12 @@ function scf_biblio_query_field_default_fields() {
           'type' => 'hidden',
           'weight' => 0,
         ),
+        'teaser_moderation' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
       ),
       'entity_type' => 'node',
       'field_name' => 'field_description',
@@ -318,6 +346,12 @@ function scf_biblio_query_field_default_fields() {
           'type' => 'hidden',
           'weight' => 0,
         ),
+        'teaser_moderation' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
       ),
       'entity_type' => 'node',
       'field_name' => 'field_modified',
@@ -357,7 +391,11 @@ function scf_biblio_query_field_default_fields() {
     ),
     'field_instance' => array(
       'bundle' => 'biblio_topic_query',
-      'default_value' => NULL,
+      'default_value' => array(
+        0 => array(
+          'value' => '0',
+        ),
+      ),
       'deleted' => '0',
       'description' => '',
       'display' => array(
@@ -374,6 +412,12 @@ function scf_biblio_query_field_default_fields() {
           'weight' => 3,
         ),
         'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser_moderation' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
@@ -420,7 +464,7 @@ function scf_biblio_query_field_default_fields() {
       'bundle' => 'biblio_topic_query',
       'default_value' => array(
         0 => array(
-          'value' => '86400',
+          'value' => '3600',
         ),
       ),
       'deleted' => '0',
@@ -439,6 +483,12 @@ function scf_biblio_query_field_default_fields() {
           'weight' => 1,
         ),
         'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser_moderation' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
@@ -520,6 +570,12 @@ function scf_biblio_query_field_default_fields() {
           'weight' => 7,
         ),
         'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser_moderation' => array(
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
