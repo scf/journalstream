@@ -123,7 +123,7 @@ function scf_biblio_query_field_default_fields() {
         ),
       ),
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Block query from executing?',
       'display' => array(
         'default' => array(
           'label' => 'above',
@@ -156,7 +156,7 @@ function scf_biblio_query_field_default_fields() {
         'active' => 1,
         'module' => 'options',
         'settings' => array(
-          'display_label' => 0,
+          'display_label' => 1,
         ),
         'type' => 'options_onoff',
         'weight' => '2',
@@ -303,6 +303,73 @@ function scf_biblio_query_field_default_fields() {
         ),
         'type' => 'text_textarea',
         'weight' => '0',
+      ),
+    ),
+  );
+
+  // Exported field: 'node-biblio_topic_query-field_limit'
+  $fields['node-biblio_topic_query-field_limit'] = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_limit',
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'module' => 'number',
+      'settings' => array(),
+      'translatable' => '1',
+      'type' => 'number_integer',
+    ),
+    'field_instance' => array(
+      'bundle' => 'biblio_topic_query',
+      'default_value' => NULL,
+      'deleted' => '0',
+      'description' => 'Number of query results to return.',
+      'display' => array(
+        'default' => array(
+          'label' => 'above',
+          'module' => 'number',
+          'settings' => array(
+            'decimal_separator' => '.',
+            'prefix_suffix' => TRUE,
+            'scale' => 0,
+            'thousand_separator' => ' ',
+          ),
+          'type' => 'number_integer',
+          'weight' => 8,
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+        'teaser_moderation' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_limit',
+      'label' => 'Limit',
+      'required' => 1,
+      'settings' => array(
+        'max' => '',
+        'min' => '1',
+        'prefix' => '',
+        'suffix' => '',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 0,
+        'module' => 'number',
+        'settings' => array(),
+        'type' => 'number',
+        'weight' => '4',
       ),
     ),
   );
@@ -520,7 +587,7 @@ function scf_biblio_query_field_default_fields() {
   $fields['node-biblio_topic_query-field_topic_queue'] = array(
     'field_config' => array(
       'active' => '1',
-      'cardinality' => '-1',
+      'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
       'field_name' => 'field_topic_queue',
@@ -606,10 +673,13 @@ function scf_biblio_query_field_default_fields() {
   // Translatables
   // Included for use with string extractors like potx.
   t('Block');
+  t('Block query from executing?');
   t('Checked');
   t('Currently used for pubmed query.');
   t('Description');
+  t('Limit');
   t('Modified');
+  t('Number of query results to return.');
   t('Query');
   t('Queued');
   t('Refresh');
