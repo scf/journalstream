@@ -88,7 +88,27 @@ function scf_collections_queue_view($node, $review_status) {
   if(in_array($review_status,$statuses)) {
     $view_output = $view->execute_display($review_status, array($node->nid));
   }
+  // Add publish form to preview page
+  if($review_status == 'preview') {
+    $view_output['content'] .= drupal_render(drupal_get_form('scf_collections_queue_publish_form',array('nid' => $node->nid))); 
+  }
   return (!empty($view_output['content'])) ? $view_output['content'] : '';
+}
+
+/**
+ * Implements hook_form
+ * Displays a button/form for publishing a queue
+*/
+function scf_collections_queue_publish_form($form, &$form_state, $extra) {
+  $nid = (isset($extra['nid'])) ? $extra['nid'] : false;
+  if($nid) {
+    $form['publish'] = array( 
+      '#type' => 'button', 
+      '#value' => 'Publish',
+    );
+    $form['#action'] = url('node/add/collection/' . $nid);
+    return $form;
+  }
 }
 
 /**
@@ -147,6 +167,24 @@ function scf_collections_form_alter(&$form, &$form_state, $form_id) {
     unset($form['field_accepted_nodes']);
     unset($form['field_rejected_nodes']);
   }
+  //Add Node Topic Queues to the collection Add Form
+  if($form_id == 'collection_node_form') {
+    $topic_node = null;
+    //The field structure is quite complex so we need to copy it
+    $paper_element_copy = (isset($form['field_papers'][LANGUAGE_NONE][0])) ? $form['field_papers'][LANGUAGE_NONE][0] : null;
+    if(arg(3)) {
+      $topic_node = node_load(arg(3));
+      if(!empty($topic_node->field_accepted_nodes[LANGUAGE_NONE])) {
+        foreach($topic_node->field_accepted_nodes[LANGUAGE_NONE] as $node) {
+          $elem = $paper_element_copy;
+          $elem['nid']['#default_value'] = $node['nid'];
+          $form['field_papers'][LANGUAGE_NONE][] = $elem;
+        }
+      }
+      //Prepopulate Topic Queue
+      $form['field_topic_queue'][LANGUAGE_NONE][0]['nid']['#default_value'] = $topic_node->nid;
+    }
+  }
 }
 
 /**
@@ -165,6 +203,22 @@ function scf_collections_preprocess_node(&$vars) {
     $vars['moderation_form']['#markup'] .= drupal_render(drupal_get_form('scf_collections_moderation_form', array('parent_node' => $parent_node, 'node' => $node)));
     $vars['moderation_form']['#markup'] .= '</div>';
     $vars['content']['#markup'] = drupal_render($node_view);
+  }
+}
+
+/**
+ * Implements hook_node_insert()
+ */
+function scf_collections_node_insert($node) {
+  //Remove items from topic queue once a collection has been inserted
+  if($node->type == 'collection') {
+    $topic_queue_node = (isset($node->field_topic_queue[LANGUAGE_NONE][0]['nid'])) ? node_load($node->field_topic_queue[LANGUAGE_NONE][0]['nid']) : false;
+    if($topic_queue_node) {
+      $topic_queue_node->field_accepted_nodes[LANGUAGE_NONE] = array();
+      $topic_queue_node->field_rejected_nodes[LANGUAGE_NONE] = array();
+      $topic_queue_node->field_not_reviewed_nodes[LANGUAGE_NONE] = array();
+      node_save($topic_queue_node);
+    }
   }
 }
 
@@ -212,8 +266,8 @@ function scf_collections_moderation_form_callback($form, $form_state) {
   $element = "#node-" . $form_state['values']['node'] . "-moderation-form"; 
   $commands = array();
   //Hide the calling node form
-  //$commands[] = ajax_command_invoke($element, 'fadeOut');
-  $commands[] = ajax_command_remove($element);
+  $commands[] = ajax_command_invoke($element, 'slideUp');
+  //$commands[] = ajax_command_remove($element);
   return array('#type' => 'ajax', '#commands' => $commands);
 }
 

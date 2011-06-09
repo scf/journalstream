@@ -6,7 +6,7 @@ class SCFCollectionsWebTestCase extends DrupalWebTestCase {
   function setUp() {
     // Enable any module that you will need in your tests.
     parent::setUp('scf_collections');
-    $web_user = $this->drupalCreateUser(array('create collection content','create topic_queue content'));
+    $web_user = $this->drupalCreateUser(array('create collection content','create topic_queue content', 'create biblio content', 'access overlay', 'edit any topic_queue content'));
     $this->drupalLogin($web_user);
     //Create a bilbio node for testing
     $this->biblio_node = $this->createBiblioNode();
@@ -174,18 +174,68 @@ class SCFLibraryAPITestCase extends SCFCollectionsWebTestCase {
   }
 }
 
-/*
-class SCFCollectionsTestViews extends DrupalWebTestCase {
-  protected $biblio_node;
+class SCFCollectionsViewsTestCase extends SCFCollectionsWebTestCase{
+  protected $topic_queue_node;
 
   public static function getInfo() {
     return array(
-      'name' => 'SCF Collections - Views Tests',
+      'name' => 'SCF Collections - Views Test Case',
       'description' => 'Tests SCF Library Views (moderation queue)',
       'group' => 'SCF',
     ); 
+  }
+
+  function setUp() {
+    parent::setUp('scf_collections');
+    $this->createTopicQueue();
+  }
+
+
+  function testQueueViews() {
+    $this->drupalGet('node/' . $this->topic_queue_node->nid);
+    $not_reviewed_nodes = array();
+    $acceppted_nodes = array();
+    $rejected_nodes = array();
+    $i = 0;
+    while($i < 3) {
+      $not_reviewed_nodes[] = $this->createBiblioNode();
+      $accepted_nodes[] = $this->createBiblioNode();
+      $rejected_nodes[] = $this->createBiblioNode();
+      $i++;
+    }
+    function get_nid($val) {
+      return $val->nid;
+    }
+    //Test Not Reviewed Queue
+    scf_collections_add_to_queue(array_map('get_nid',$not_reviewed_nodes),$this->topic_queue_node->nid,'not_reviewed');
+    $node = node_load($this->topic_queue_node->nid);
+    $this->assertFalse(empty($node->field_not_reviewed_nodes));
+    $this->drupalGet('node/' . $this->topic_queue_node->nid . '/not_reviewed');
+    $this->assertText($not_reviewed_nodes[0]->title);
+    //Test Accepted Queue
+    scf_collections_add_to_queue(array_map('get_nid',$accepted_nodes),$this->topic_queue_node->nid,'accepted');
+    $node = node_load($this->topic_queue_node->nid);
+    $this->assertFalse(empty($node->field_accepted_nodes));
+    $this->drupalGet('node/' . $this->topic_queue_node->nid . '/accepted');
+    $this->assertText($accepted_nodes[0]->title);
+    //Test Rejected Queue
+    scf_collections_add_to_queue(array_map('get_nid',$rejected_nodes),$this->topic_queue_node->nid,'rejected');
+    $node = node_load($this->topic_queue_node->nid);
+    $this->assertFalse(empty($node->field_rejected_nodes));
+    $this->drupalGet('node/' . $this->topic_queue_node->nid . '/rejected');
+    $this->assertText($rejected_nodes[0]->title);
+    //Test Preview Queue
+    $this->drupalGet('node/' . $this->topic_queue_node->nid . '/preview');
+    $this->assertText($accepted_nodes[0]->title);
+  }  
+
+  function createTopicQueue() {
+    $edit = array();
+    $edit['title'] = 'Topic Title';
+    $this->drupalPost('node/add/topic-queue', $edit, t('Save'));
+    $this->topic_queue_node = $this->drupalGetNodeByTitle($edit['title']); 
+  }
 }
-*/
   
 
 ?>
