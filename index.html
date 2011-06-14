@@ -3,51 +3,94 @@
 <head>
   <meta charset='utf-8'>
 
-  <title>ngmaloney/Science-Collaboration-Framework-Collections-Module @ GitHub</title>
-
+  <title>ngmaloney/scf_collections @ GitHub</title>
+  <link rel="stylesheet" href="normalize.css"> 
   <style type="text/css">
-    body {
-      margin-top: 1.0em;
-      background-color: #660000;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #ffffff;
-    }
     #container {
       margin: 0 auto;
       width: 700px;
     }
-    h1 { font-size: 3.8em; color: #99ffff; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
-    h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #99ffff; }
-    h3 { text-align: center; color: #99ffff; }
-    a { color: #99ffff; }
     .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
     .download { float: right; }
+    h1 a {color: #333; text-decoration: none; }
     pre { background: #000; color: #fff; padding: 15px;}
     hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+    ol li {margin-bottom: 10px;}
     .footer { text-align:center; padding-top:30px; font-style: italic; }
   </style>
 </head>
 
 <body>
-  <a href="http://github.com/ngmaloney/Science-Collaboration-Framework-Collections-Module"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+  <a href="http://github.com/ngmaloney/scf_collections"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 
   <div id="container">
 
     <div class="download">
-      <a href="http://github.com/ngmaloney/Science-Collaboration-Framework-Collections-Module/zipball/master">
+      <a href="http://github.com/ngmaloney/scf_collections/zipball/master">
         <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/ngmaloney/Science-Collaboration-Framework-Collections-Module/tarball/master">
+      <a href="http://github.com/ngmaloney/scf_collections/tarball/master">
         <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
     </div>
 
-    <h1><a href="http://github.com/ngmaloney/Science-Collaboration-Framework-Collections-Module">Science-Collaboration-Framework-Collections-Module</a>
+    <h1><a href="http://github.com/ngmaloney/scf_collections">SCF Collections</a>
       <span class="small">by <a href="http://github.com/ngmaloney">ngmaloney</a></span></h1>
 
     <div class="description">
       A Drupal 7 module for curating collections of papers, articles, etc.
     </div>
+
+    <p>The SCF Collections module is a group of modules that creats a moderated workflow for curating collections of content. It is part of the soon to be released Science Collaboration Framework. Its primary useage scenario is within the academic and medical research context but in theory it can work for any use case needing a publishing workflow. The module has a few dependencies but can run as-is out of the box.</p>
+
+    <p>The module is made up of 3 major components: </p>
+    <ul>
+      <li>Query Components</li>
+      <li>Topic Queue</li>
+      <li>Collection</li>
+    </ul>
+
+    <p>The general workflow is as follows: Query components programatically import content that populate topic queues. Topic queues are then moderated and published as collections. The original use case was for publishing a "Papers of the Week" collection, where editors reviewed journal articles imported from pubmed (via the Biblio Module) and published a curated collection each week. </p>
+
+    <div><em>Figure 1-1: Workflow of the SCF Collections Module</em></div>
+
+    <div><img src="scf_collections_graph.png" alt="SCF Collections Diagram">
+
+    <h2>Instructions for use:</h2>
+
+    <ol>
+      <li>
+        <strong>Create a new "Topic Queue" node.</strong>
+        <div>This will serve as a repository for all articles, papers, etc imported via the query.</div>
+      </li>
+
+      <li>
+        <strong>Create a new "Topic Query" node. </strong>
+        <div>The scf_collections module includes a "Biblio Topic Query" node type that queries pubmed. Associate the Topic Node created in step 1 to the Topic Query Node.</div>
+      </li>
+
+      <li>
+        <strong>Execute the Topic Query </strong>
+        <div>This typically achieved via cron. The included "Biblio Topic Query" will run via cron and populate the assoicated Topic Queues. </div>
+      </li>
+
+      <li>
+        <strong>Moderate and Publish</strong>
+        <div>After executing the Topic Query in step 3, the imported content will be present in its associated Topic Queue. All content that is flagged as accepted will be published to a new collection node.</div>
+      </li>
+    </ol>
+
+    <h2>Developing Topic Queries</h2>
+
+    <p>The module comes with a fully functional example query interface module named scf_biblio_query. This module will query pubmed and import articles into the assigned Topic Queue. Developing a custom Topic Query is simple and primarily relies on just 1 hook. After a custom module imports (and saves) nodes they need to be passed to the scf_collections_add_to_queue function. Ex:</p>
+
+    <pre>
+    <code>
+      //An array of NIDS created by the topic query
+      $queue_nids = array(100,101,102); 
+      //The NID of the topic queue to insert NIDS into
+      $topic_queue = 2; 
+      scf_collections_add_to_queue($queue_nids,$topic_queue);
+    </code>
+    </pre>
 
     <h2>Contact</h2>
 <p>Nick Maloney (ngmaloney@gmail.com)<br/>      </p>
@@ -56,16 +99,16 @@
     <h2>Download</h2>
     <p>
       You can download this project in either
-      <a href="http://github.com/ngmaloney/Science-Collaboration-Framework-Collections-Module/zipball/master">zip</a> or
-      <a href="http://github.com/ngmaloney/Science-Collaboration-Framework-Collections-Module/tarball/master">tar</a> formats.
+      <a href="http://github.com/ngmaloney/scf_collections/zipball/master">zip</a> or
+      <a href="http://github.com/ngmaloney/scf_collections/tarball/master">tar</a> formats.
     </p>
     <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
       by running:
-      <pre>$ git clone git://github.com/ngmaloney/Science-Collaboration-Framework-Collections-Module</pre>
+      <pre>$ git clone git://github.com/ngmaloney/scf_collections</pre>
     </p>
 
     <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/ngmaloney/Science-Collaboration-Framework-Collections-Module">ngmaloney/Science-Collaboration-Framework-Collections-Module</a>
+      get the source code on GitHub : <a href="http://github.com/ngmaloney/scf_collections">ngmaloney/scf_collections</a>
     </div>
 
   </div>
