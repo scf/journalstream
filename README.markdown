@@ -13,20 +13,16 @@ The general workflow is as follows: Query components programatically import cont
 ## Instructions for use: ##
 
 1. Create a new "Topic Queue" node.
-
-  This will serve as a repository for all articles, papers, etc imported via the query. 
+   This will serve as a repository for all articles, papers, etc imported via the query. 
 
 2. Create a new "Topic Query" node. 
-
-  The scf_collections module includes a "Biblio Topic Query" node type that queries pubmed. Associate the Topic Node created in step 1 to the Topic Query Node.
+   The scf_collections module includes a "Biblio Topic Query" node type that queries pubmed. Associate the Topic Node created in step 1 to the Topic Query Node.
 
 3. Execute the Topic Query 
-  
-  This typically achieved via cron. The included "Biblio Topic Query" will run via cron and populate the assoicated Topic Queues. 
+   This typically achieved via cron. The included "Biblio Topic Query" will run via cron and populate the assoicated Topic Queues. 
 
 4. Moderate and Publish
-
-  After executing the Topic Query in step 3, the imported content will be present in its associated Topic Queue. All content that is flagged as accepted will be published to a new collection node.
+   After executing the Topic Query in step 3, the imported content will be present in its associated Topic Queue. All content that is flagged as accepted will be published to a new collection node.
 
 ## Developing Topic Queries ##
 
