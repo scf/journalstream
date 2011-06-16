@@ -10,9 +10,23 @@
       margin: 0 auto;
       width: 700px;
     }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
+    .description { 
+      font-size: 1.2em; 
+      margin-bottom: 30px; 
+      margin-top: 30px; 
+      font-style: italic;
+      clear: both;
+      display: block;
+    }
     .download { float: right; }
-    h1 a {color: #333; text-decoration: none; }
+    .logo {
+      padding: 5px 5px 5px 5px;
+    }
+    h1 a {
+      color: #333; 
+      text-decoration: none; 
+      clear: both;
+    }
     pre { background: #000; color: #fff; padding: 15px;}
     hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
     ol li {margin-bottom: 10px;}
@@ -31,9 +45,8 @@
       <a href="http://github.com/ngmaloney/scf_collections/tarball/master">
         <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
     </div>
-
-    <h1><a href="http://github.com/ngmaloney/scf_collections">SCF Collections</a>
-      <span class="small">by <a href="http://github.com/ngmaloney">ngmaloney</a></span></h1>
+    <img src="logo.png" class="logo">
+    <h1><a href="http://github.com/ngmaloney/scf_collections">SCF Collections</a></h1>
 
     <div class="description">
       A Drupal 7 module for curating collections of papers, articles, etc.
@@ -91,6 +104,11 @@
       scf_collections_add_to_queue($queue_nids,$topic_queue);
     </code>
     </pre>
+
+    <h2>Running Ad-hoc Pubmed Queries</h2>
+
+    <p>Included within the package is the SCF Biblio Import module. This module facilitates importing Pubmed articles into a topic queue via Pubmed ID. When enabled, each queue will contain a tab allowing for bulk import via file or form.</p>
+
 
     <h2>Contact</h2>
 <p>Nick Maloney (ngmaloney@gmail.com)<br/>      </p>
