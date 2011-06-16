@@ -1,0 +1,7 @@
+core = "7.x"
+dependencies[] = "scf_collections"
+description = "Provided an interface to allow Pubmed biblio imports"
+files[] = "scf_biblio_import.test"
+name = "SCF Biblio Import"
+package = "SCF"
+php = "5.2.4"

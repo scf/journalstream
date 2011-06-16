@@ -106,7 +106,8 @@ function scf_biblio_query_cron() {
  *   An object describing the feed to be refreshed.
  */
 function scf_biblio_query_execute($feed) {
-  if(!$feed) {
+  if(!$feed || !is_object($feed)) {
+    watchdog('scf_biblio_query', 'Feed argument passed during execution was invalid.');
     return;
   }
   module_load_include('php', 'biblio_pm', 'EntrezClient');
