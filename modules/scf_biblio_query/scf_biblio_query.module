@@ -143,7 +143,6 @@ function scf_biblio_query_execute($feed) {
   $imported = 0;
   // Node ID's for queue
   $queue_nids = array();
-  dd($results);
   foreach($results->IdList->Id as $pmid) {
     $article = $Eclient->fetch((string)$pmid)->PubmedArticle;
     if (!$article) {

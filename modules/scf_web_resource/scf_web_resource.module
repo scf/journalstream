@@ -1,0 +1,190 @@
+<?php
+/**
+ * @file
+ * Code for the SCF Web Resource feature.
+ */
+
+include_once('scf_web_resource.features.inc');
+
+define('SCF_WEB_RESOURCE_NODE_TYPE', 'web_resource');
+
+/**
+ * Implements hook_form()
+*/
+function scf_web_resource_menu() {
+  $items['node/add/web-resource/bookmarklet'] = array(
+    'title' => 'Create Web Resource',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('scf_web_resource_bookmarklet_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('create web resource'),
+  );
+  $items['scf_web_resource/bookmarklet/handler'] = array( 
+    'title' => 'Bookmarklet',
+    'page callback' => 'scf_web_resource_bookmarklet_handler',
+    'file' => 'scf_web_resource.handler.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+  );
+  $items['scf_web_resource/bookmarklet/proxy'] = array( 
+    'title' => 'Proxy',
+    'page callback' => 'scf_web_resource_portal_proxy',
+    'file' => 'scf_web_resource.proxy.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array('access content') 
+  );
+  //Import Component for SCF Collections
+  $items['node/%node/web_resource_import'] = array(
+    'title' => 'Web Resource Import',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('scf_web_resource_import_form'),
+    'file' => 'scf_web_resource.import.inc',
+    'access callback' => 'scf_web_resource_local_task_loader',
+    'access arguments' => array(1),
+    'weight' => 8,
+  );
+
+  // Temporary route for testing bookmarklet prepopulation
+  $items['bookmarklet/test'] = array( 
+    'title' => t('Test Bookmarklet'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('scf_web_resource_test_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+function scf_web_resource_admin_paths() {
+  $paths = array( 
+    'node/*/web_resource_import' => TRUE,
+  );
+  return $paths;
+}
+
+function scf_web_resource_local_task_loader($node) {
+  global $user;
+
+  //Check node access perms
+  $access_granted = node_access('update', $node);
+
+  if($node->type == SCFC_TOPIC_QUEUE_TYPE && $access_granted) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  } 
+}
+
+/**
+ * Implements hook_form()
+ * Creates a custom bookmarklet form for submitting a web resource
+*/
+function scf_web_resource_bookmarklet_form($form_state) {
+  global $user;
+  module_load_include('inc', 'node', 'node.pages');
+  $title = (!empty($_POST['title'])) ? filter_xss($_POST['title'], array()) : '';
+  $description = (!empty($_POST['description'])) ? filter_xss($_POST['description'], array()) : '';
+  $url = (!empty($_POST['url'])) ? filter_xss($_POST['url'], array()) : '';
+  $queue = (!empty($_POST['queue'])) ? filter_xss($_POST['queue'], array()) : '';
+  $params = array( 
+    'title' => '', 
+  );
+  $node = _scf_web_resource_node_factory($params);  
+  $node_form = drupal_get_form('web_resource_node_form', $node);
+  unset($node_form['additional_settings']); //Hide Additional Settings
+  unset($node_form['body'][LANGUAGE_NONE][0]['format']); //Hide Body Input Format
+  unset($node_form['field_screenshot']); //Hide Screenshot Input Element, it will be imported via cron
+  print drupal_render($node_form);
+  exit();
+}
+
+function scf_web_resource_test_form($form_state) {
+  global $user;
+  $uid = $user->uid;
+  $nid = 123;
+  $form = array();
+  $form['#action'] = '/node/add/web-resource/bookmarklet';
+  $form['title'] = array( 
+  '#type' => 'hidden',
+  '#value' => 'Hello',
+  );
+  $form['description'] = array( 
+  '#type' => 'hidden',
+  '#value' => 'description',
+  );
+  $form['url'] = array( 
+  '#type' => 'hidden',
+  '#value' => 'http://www.google.com',
+  );
+  $form['queue'] = array( 
+  '#type' => '1',
+  '#value' => 'Hello',
+  );
+  $form['submit'] = array( 
+    '#type' => 'submit',
+    '#value' => 'submit'
+  );
+  $form['bookmarklet'] = array( 
+    '#type' => 'markup',
+    '#markup' => _scf_web_resource_get_bookmarklet_js($nid),
+  );
+  return $form;
+}
+
+/**
+ * Helper function for generating bookmarklet javascript
+*/
+function _scf_web_resource_get_bookmarklet_js($nid) {
+  global $base_url;
+  $module_path = drupal_get_path('module', 'scf_web_resource');
+  $porthole_path = $base_url . '/' . $module_path . '/javascripts/porthole.js';
+  $bookmarklet_path = $base_url . '/' . $module_path . '/bookmarklet.js';
+  $jsfunction = <<<EOF
+function scfbkmk() {
+ var d = document,
+ s1 = d.createElement('scr' + 'ipt'),
+ s2 = d.createElement('scr' + 'ipt'),
+ b = d.body,
+ l = d.location;
+ try {
+   if (!b) throw (0);
+   d.title = '(Saving...) ' + d.title;
+   s1.setAttribute('src', '%s' + '?t=' + (new Date().getTime()));
+   s2.setAttribute('src', '%s' + '?t=' + (new Date().getTime()));
+   b.appendChild(s1);
+   b.appendChild(s2);
+ } catch(e) {
+   alert('Please wait until the page has loaded.');
+   console.log(e);
+ }
+}
+ scfbkmk();
+ void(0)
+EOF;
+$js = sprintf($jsfunction, $porthole_path, $bookmarklet_path);
+$js = preg_replace("/\n|\t|\s{2}/",'',$js);
+$output = '<a href="javascript:' . $js . '" title="Add to Queue">Add to Queue</a>';
+return $output;
+}
+
+/*
+function scf_web_resource_form_alter(&$form, &$form_state, $form_id) {
+  dd($form_id);
+  dd('hi');
+}
+*/
+
+/**
+ * Helper function for pre-populating a node object
+ * @params 
+ *   Any array of node params
+*/
+function _scf_web_resource_node_factory($params) {
+  $node = new stdClass();
+  $node->title = (!empty($params['title'])) ? $params['title'] : '';
+  $node->type = (!empty($params['type'])) ? $params['type'] : SCF_WEB_RESOURCE_NODE_TYPE;
+  $node->language = LANGUAGE_NONE;
+  return $node;
+}
