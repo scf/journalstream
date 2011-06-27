@@ -122,33 +122,3 @@ function scf_web_resource_import_form_submit($form, & $form_state) {
   $path = 'node/' . $queue_nid . '/' . $queue;
   drupal_goto($path);
 }
-
-/**
- * Hook for saving a Web Resource by URL.
- * Attempts to import Title and Description from remote resource 
- * @param $url
- *   Remote URL to import
-*/
-function scf_web_resource_import_by_url($url) {
-  global $user;
-  require_once('includes/phpQuery-onefile.php');
-  $request = drupal_http_request($url);
-  $node = new stdClass();
-  if($request->code == '200' && !empty($request->data)) {
-    $document = phpQuery::newDocumentHTML($request->data);
-    $title = $document->find('title')->text();
-    $description = $document->find('meta[name="description"]')->attr('content');
-    //Create the web resource node object
-    $node->type = SCF_WEB_RESOURCE_NODE_TYPE;
-    node_object_prepare($node);
-    $node->language = LANGUAGE_NONE;
-    $node->title = $title;
-    $node->field_url[LANGUAGE_NONE][0]['url'] = $url;
-    $node->body[LANGUAGE_NONE][0]['value'] = $description;
-    $node->uid = $user->uid;
-    $result = node_save($node);
-    dd($node);
-    return !empty($node->nid) ? $node->nid : false;
-  }
-  return false;
-}

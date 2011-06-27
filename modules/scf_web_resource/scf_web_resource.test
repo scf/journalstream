@@ -18,6 +18,15 @@ class SCFWebResourceWebTestCase extends DrupalWebTestCase {
     $this->drupalPost('node/add/topic-queue', $edit, t('Save'));
     $this->topic_queue_node = $this->drupalGetNodeByTitle($edit['title']);
   }
+
+  function debug($data) {
+    // The temp directory does vary across multiple simpletest instances.
+    $file = file_directory_temp(). 'drupal_debug.txt';
+    if (file_put_contents($file, $data, FILE_APPEND) === FALSE) {
+      drupal_set_message(t('The file could not be written.'), 'error');
+      return FALSE;
+    }
+  }
 }
 
 class SCFWebResourceNodeCreationTestCase extends SCFWebResourceWebTestCase {
@@ -73,10 +82,9 @@ class SCFWebResourceImportTestCase extends SCFWebResourceWebTestCase {
   } 
 
   function testImportByUrl() {
-    module_load_include('inc', 'scf_web_resource', 'scf_web_resource.import');
     $url = 'http://www.drupal.org/';
     $import = scf_web_resource_import_by_url($url);
-    dd($import);
+    $this->debug($import);
     $this->assertTrue(is_int($import));
   }
 
