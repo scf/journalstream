@@ -49,7 +49,7 @@ function scf_collections_field_default_fields() {
           'module' => 'text',
           'settings' => array(),
           'type' => 'text_default',
-          'weight' => 0,
+          'weight' => '0',
         ),
         'teaser' => array(
           'label' => 'hidden',
@@ -139,9 +139,11 @@ function scf_collections_field_default_fields() {
         'default' => array(
           'label' => 'above',
           'module' => 'node_reference',
-          'settings' => array(),
-          'type' => 'node_reference_default',
-          'weight' => 1,
+          'settings' => array(
+            'node_reference_view_mode' => 'teaser',
+          ),
+          'type' => 'node_reference_node',
+          'weight' => '1',
         ),
         'teaser' => array(
           'label' => 'above',
