@@ -115,9 +115,11 @@ function scf_collections_field_default_fields() {
         'referenceable_types' => array(
           'article' => 0,
           'biblio' => 'biblio',
+          'biblio_topic_query' => 0,
           'collection' => 0,
           'page' => 0,
-          'pow' => 0,
+          'topic_queue' => 0,
+          'web_resource' => 'web_resource',
         ),
         'view' => array(
           'args' => array(),
