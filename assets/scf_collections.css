@@ -14,3 +14,7 @@ div.view-scf-collections-queue .node {
   clear: right;
   display: block;
 }
+
+div.view-scf-collections-queue .node-unpublished {
+  background: none;
+}

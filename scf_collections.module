@@ -176,9 +176,13 @@ function scf_collections_form_alter(&$form, &$form_state, $form_id) {
       $topic_node = node_load(arg(3));
       if(!empty($topic_node->field_accepted_nodes[LANGUAGE_NONE])) {
         foreach($topic_node->field_accepted_nodes[LANGUAGE_NONE] as $node) {
-          $elem = $paper_element_copy;
-          $elem['nid']['#default_value'] = $node['nid'];
-          $form['field_papers'][LANGUAGE_NONE][] = $elem;
+          // On occasion deleted nodes will be present in accepted queue.
+          // Ensure they are actual nodes. (TODO: refactor to make more efficient)
+          if(node_load($node['nid'])) {
+            $elem = $paper_element_copy;
+            $elem['nid']['#default_value'] = $node['nid'];
+            $form['field_papers'][LANGUAGE_NONE][] = $elem;
+          }
         }
       }
       //Prepopulate Topic Queue
@@ -218,6 +222,14 @@ function scf_collections_node_insert($node) {
       $topic_queue_node->field_rejected_nodes[LANGUAGE_NONE] = array();
       $topic_queue_node->field_not_reviewed_nodes[LANGUAGE_NONE] = array();
       node_save($topic_queue_node);
+    }
+    //Make sure all referenced nodes are published
+    if(!empty($node->field_papers[LANGUAGE_NONE])) {
+      foreach($node->field_papers[LANGUAGE_NONE] as $pnid) {
+        $pnode = node_load($pnid['nid']); 
+        $pnode->status = 1;
+        node_save($pnode);
+      }
     }
   }
 }
