@@ -4,25 +4,32 @@
 */
 function scf_web_resource_bookmarklet_handler() {
   global $base_url;
+  global $user;
   $js = '';
-
+  $status = 0;
+  $queue_node = menu_get_object();
   //Parse POST Vars
-  $title = (!empty($_POST['title'])) ? filter_xss($_POST['title'], array()) : '';
-  $description = (!empty($_POST['description'])) ? filter_xss($_POST['description'], array()) : '';
   $url = (!empty($_POST['url'])) ? filter_xss($_POST['url'], array()) : '';
-  $queue = (!empty($_POST['queue'])) ? filter_xss($_POST['queue'], array()) : '';
-  watchdog('info','web resource response: ' . $url);
 
   //Setup Source and Path vars
   $module_path = drupal_get_path('module','scf_web_resource');
   $porthole_path = $base_url . '/' . $module_path . '/javascripts/porthole.js';
   $proxy_path = $base_url . '/scf_web_resource/bookmarklet/proxy';
-//if(!empty($url)) {
-$js = <<< EOF
-windowProxy.postMessage('url=%s');
+  if($queue_node->type == SCFC_TOPIC_QUEUE_TYPE && !empty($url) && user_is_logged_in($user)) {
+    $decoded_url = urldecode($url);
+    $nid = scf_web_resource_import_by_url($decoded_url);
+    //Add to queue
+    $nids = array();
+    $nids[] = $nid;
+    scf_collections_add_to_queue($nids,$queue_node->nid);
+    $status = (!empty($nid)) ? 1 : 0; 
+    watchdog('info','SCF Web Resources saved url: ' . $decoded_url);
+  }
+  $js = <<< EOF
+windowProxy.postMessage('url=%s&status=%s');
 EOF;
 
-$js = sprintf($js,$url);
+  $js = sprintf($js,$url,$status);
 
 $html = <<< EOF
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
@@ -41,12 +48,27 @@ $html = <<< EOF
 	</body> 
 </html>
 EOF;
-header('Access-Control-Allow-Origin: *');
-printf($html,$porthole_path, $proxy_path, $js);
+  header('Access-Control-Allow-Origin: *');
+  printf($html,$porthole_path, $proxy_path, $js);
+}
 
-  //Validate API
-  //Flood Control flood_register_event
-  //Save Data
-  //Record Throttle
-  //Watchdog Info
+/**
+ * Handles redirected bookmarklet requests
+*/
+function scf_web_resource_bookmarklet_redirect_handler() {
+  $queue_node = menu_get_object();
+  $hash = arg(3); 
+  $url = urldecode(base64_decode($hash));
+  if(empty($hash) || !valid_url($url,TRUE)) {
+    drupal_set_message('Invalid URL sent to bookmarklet');
+    drupal_goto('node/' . $queue_node->nid);
+  }
+  $nid = scf_web_resource_import_by_url($url);
+  //Add to queue
+  $nids = array();
+  $nids[] = $nid;
+  scf_collections_add_to_queue($nids,$queue_node->nid);
+  $status = (!empty($nid)) ? 1 : 0; 
+  watchdog('info','SCF Web Resources saved url: ' . $decoded_url);
+  drupal_goto($url);
 }
