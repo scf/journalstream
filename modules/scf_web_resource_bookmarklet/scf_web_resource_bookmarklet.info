@@ -1,0 +1,5 @@
+name = "SCF Web Resource Bookmarklet"
+description = "Provides a bookmarklet api used to save Web Resources"
+package = "SCF"
+dependencies[] = "scf_web_resource"
+core = "7.x"

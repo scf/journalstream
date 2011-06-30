@@ -12,13 +12,6 @@ define('SCF_WEB_RESOURCE_NODE_TYPE', 'web_resource');
  * Implements hook_form()
 */
 function scf_web_resource_menu() {
-  $items['scf_web_resource/bookmarklet/proxy'] = array( 
-    'title' => 'Proxy',
-    'page callback' => 'scf_web_resource_portal_proxy',
-    'file' => 'scf_web_resource.proxy.inc',
-    'access callback' => 'user_access',
-    'access arguments' => array('access content') 
-  );
   //Import Component for SCF Collections
   $items['node/%node/web_resource_import'] = array(
     'title' => 'Web Resource Import',
@@ -30,35 +23,6 @@ function scf_web_resource_menu() {
     'access arguments' => array(1),
     'weight' => 8,
   );
-
-  $items['node/%node/bookmarklet'] = array(
-    'title' => 'Bookmarklet',
-    'type' => MENU_LOCAL_TASK,
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('scf_web_resource_bookmarklet_view'),
-    'access callback' => 'scf_web_resource_local_task_loader',
-    'access arguments' => array(1),
-    'weight' => 9,
-  );
-
-  //Bookmarklet Handler for Topic Queues
-  $items['node/%node/bookmarklet_handler'] = array( 
-    'title' => 'Web Resources Bookmarklet Handler',
-    'page callback' => 'scf_web_resource_bookmarklet_handler',
-    'file' => 'scf_web_resource.handler.inc',
-    'access callback' => 'user_access',
-    'access arguments' => array('access content'), 
-  );
-
-  // Bookmarklet handler for redirected requests
-  // Bookmarklet will redirect to this with hashed url
-  $items['node/%node/bookmarklet_redirect_handler'] = array( 
-    'title' => 'Web Resources Bookmarklet Redirect Handler',
-    'page callback' => 'scf_web_resource_bookmarklet_redirect_handler',
-    'file' => 'scf_web_resource.handler.inc',
-    'access callback' => 'scf_web_resource_local_task_loader',
-    'access arguments' => array(1), 
-  ); 
 
   return $items;
 }
@@ -84,84 +48,13 @@ function scf_web_resource_local_task_loader($node) {
   } 
 }
 
-function scf_web_resource_bookmarklet_view() {
-  $node = menu_get_object();
-  $form = array();
-  $form['bookmarklet'] = array( 
-    '#type' => 'markup',
-    '#markup' => _scf_web_resource_get_bookmarklet_js($node->nid),
-  );
-  $form['description'] = array( 
-    '#type' => 'markup',
-    '#markup' =>  '<p>' . t('Drag the link above to your browsers toolbar. It will create a bookmarklet for this topic queue') . '</p>', 
-  );
-  return $form;
-}
-
-/**
- * Helper function for generating bookmarklet javascript
-*/
-function _scf_web_resource_get_bookmarklet_js($nid) {
-  global $base_url;
-  $module_path = drupal_get_path('module', 'scf_web_resource');
-  $porthole_path = $base_url . '/' . $module_path . '/javascripts/porthole.js';
-  $bookmarklet_path = $base_url . '/' . $module_path . '/webresource.js';
-  $form_action = $base_url . '/node/' . $nid . '/bookmarklet_handler';
-  $login_url = $base_url . '/user?destination=node/' . $nid . '/bookmarklet_redirect_handler' ;
-  $proxy_url = $base_url . '/scf_web_resource/bookmarklet/proxy';
-  $params = "{ 
-    form_action: '$form_action',
-    login_url: '$login_url',
-    proxy_url: '$proxy_url'
-  }";
-  $jsfunction = <<<EOF
-function bookmark() {
- var d = document,
- s1 = d.createElement('scr' + 'ipt'),
- s2 = d.createElement('scr' + 'ipt'),
- b = d.body,
- l = d.location;
- try {
-   if (!b) throw (0);
-   d.title = '(Saving...) ' + d.title;
-   s1.setAttribute('src', '%s' + '?t=' + (new Date().getTime()));
-   s2.setAttribute('src', '%s' + '?t=' + (new Date().getTime()));
-   if(typeof(WebResource) == 'undefined') {
-     b.appendChild(s1);
-     b.appendChild(s2);
-   }
- } catch(e) {
-   alert('Please wait until the page has loaded.');
- }
-}
-function run() {
-  var webresource = new WebResource; 
-  var params = %s; 
-  webresource.init(params); 
-}
- bookmark();
- setTimeout(function() {run();},1000);
- void(0)
-EOF;
-$js = sprintf($jsfunction, $porthole_path, $bookmarklet_path, $params);
-$js = preg_replace("/\n|\t|\s{2}/",'',$js);
-$output = '<a href="javascript:' . $js . '" title="Add to Queue">Add to Queue</a>';
-return $output;
-}
-
-/*
-function scf_web_resource_form_alter(&$form, &$form_state, $form_id) {
-  dd($form_id);
-  dd('hi');
-}
-*/
-
-
 /**
  * Hook for saving a Web Resource by URL.
  * Attempts to import Title and Description from remote resource 
  * @param $url
  *   Remote URL to import
+ * @return $nid
+ *   Returns nid of saved web resource
 */
 function scf_web_resource_import_by_url($url) {
   global $user;

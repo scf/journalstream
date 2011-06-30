@@ -69,6 +69,6 @@ function scf_web_resource_bookmarklet_redirect_handler() {
   $nids[] = $nid;
   scf_collections_add_to_queue($nids,$queue_node->nid);
   $status = (!empty($nid)) ? 1 : 0; 
-  watchdog('info','SCF Web Resources saved url: ' . $decoded_url);
+  watchdog('info','SCF Web Resources saved url: ' . $url);
   drupal_goto($url);
 }

@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Generates the porthole iframe proxy html
+ * Generates the porthole.js iframe proxy html
  */
-function scf_web_resource_portal_proxy() {
+function scf_web_resource_bookmarklet_portal_proxy() {
   global $base_url;
   $module_path = drupal_get_path('module','scf_web_resource');
   $porthole_path = $base_url . '/' . $module_path . '/javascripts/porthole.js';
