@@ -54,14 +54,17 @@
 
     <p>The SCF Collections module is a group of modules that creates a moderated workflow for curating collections of content. It is part of the soon to be released Science Collaboration Framework. The primary useage scenario is within the academic and medical research context but can be applied to any use case needing a publishing/moderation workflow. The module has a few contrib dependencies but can run as-is out of the box.</p>
 
-    <p>The module is made up of 3 major components: </p>
+    <p>The module is made up of 4 major components: </p>
     <ul>
       <li>Query Components</li>
+      <li>Import Components</li>
       <li>Topic Queue</li>
       <li>Collection</li>
     </ul>
 
-    <p>The general workflow is as follows: Query components programatically import content that populate topic queues. Topic queues are then moderated and published as collections. The original use case was for publishing a "Papers of the Week" collection, where editors reviewed journal articles imported from pubmed (via the Biblio Module) and published a curated collection each week. </p>
+    <p>The general workflow is as follows: Query components and Import components programatically import content into topic queues. Topic Queues are simple "buckets" of content that hold collections of content (papers, web articles, etc.) awaiting moderation. Topic queues are then moderated and published as collections. The original use case was for publishing a "Papers of the Week" collection, where editors reviewed journal articles imported from pubmed (via the Biblio Module) and published a curated collection each week. </p>
+
+    <p>This module comes bundled with Pubmed integration (via the biblio module) and a custom node type called Web Resources used for saving any resource on the web accesseable via URL.</p> 
 
     <div><em>Figure 1-1: Workflow of the SCF Collections Module</em></div>
 
@@ -109,6 +112,29 @@
 
     <p>Included within the package is the SCF Biblio Import module. This module facilitates importing Pubmed articles into a topic queue via Pubmed ID. When enabled, each queue will contain a tab allowing for bulk import via file or form.</p>
 
+    <h2>Bookmarking Web Resources</h2>
+
+    <p>Bundled with the SCF Web Resource module is the SCF Web Resource Bookmarklet. This creates a browser bookmarklet that, when triggered, adds the current page URL to the Topic Queues "Not Reviewed" queue.</p>
+
+    <p>The SCF Web Resources module also provides a simple API for saving URL's as Web Resource nodes. The code below demonstrates:</p>
+
+    <p>To Use:</p>
+
+    <ol>
+      <li>Install and enable the SCF Web Resource and SCF Web Resource Bookmarklet moudle.</li>
+      <li>Create a Topic Queue Node.</li>
+      <li>View the created Topic Queue and click the bookmarklet tab.</li>
+      <li>Drag the "Add to Queue" link to your browser toolbar.</li>
+      <li>Visit a web page that you would like to queue for moderation and click the "Add to Queue" bookmarklet.</li>
+    </ol>
+
+    <pre>
+    <code>
+      $url = 'http://en.wikipedia.org/wiki/Api';
+      $nid = scf_web_resource_import_by_url($url);
+      //The $nid variable will be set to the newly inserted Node ID.
+    </code>
+    </pre>
 
     <h2>Contact</h2>
 <p>Nick Maloney (ngmaloney@gmail.com)<br/>      </p>
