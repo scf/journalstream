@@ -1,11 +1,11 @@
 <?php
 
-class SCFCollectionsWebTestCase extends DrupalWebTestCase {
+class JournalStreamWebTestCase extends DrupalWebTestCase {
   protected $biblio_node;
 
   function setUp() {
     // Enable any module that you will need in your tests.
-    parent::setUp('scf_collections');
+    parent::setUp('journalstream');
     $web_user = $this->drupalCreateUser(array('create collection content','create topic_queue content', 'create biblio content', 'access overlay', 'edit any topic_queue content'));
     $this->drupalLogin($web_user);
     //Create a bilbio node for testing
@@ -46,11 +46,11 @@ class SCFCollectionsWebTestCase extends DrupalWebTestCase {
   }
 } 
 
-class SCFCollectionsNodeCreationTestCase extends SCFCollectionsWebTestCase {
+class JournalStreamNodeCreationTestCase extends JournalStreamWebTestCase {
 
   public static function getInfo(){
     return array(
-      'name' => 'SCF Collections - Collection Node Creation',
+      'name' => 'JournalStream - Collection Node Creation',
       'description' => 'Tests that a Collection node type has been created',
       'group' => 'SCF',
     ); 
@@ -81,11 +81,11 @@ class SCFCollectionsNodeCreationTestCase extends SCFCollectionsWebTestCase {
   }
 }
 
-class SCFLibraryTopicQueueNodeCreationTestCase extends SCFCollectionsWebTestCase {
+class SCFLibraryTopicQueueNodeCreationTestCase extends JournalStreamWebTestCase {
 
   public static function getInfo(){
     return array(
-      'name' => 'SCF Collections - Topic Queue Node Creation',
+      'name' => 'JournalStream - Topic Queue Node Creation',
       'description' => 'Tests that a Topic Queue node type has been created',
       'group' => 'SCF',
     ); 
@@ -123,19 +123,19 @@ class SCFLibraryTopicQueueNodeCreationTestCase extends SCFCollectionsWebTestCase
   }
 }
 
-class SCFLibraryAPITestCase extends SCFCollectionsWebTestCase {
+class SCFLibraryAPITestCase extends JournalStreamWebTestCase {
   protected $biblio_nodes;
 
   public static function getInfo() {
     return array(
-      'name' => 'SCF Collections - API Tests',
-      'description' => 'Tests SCF Library API hooks',
+      'name' => 'JournalStream - API Tests',
+      'description' => 'Tests JournalStream Library API hooks',
       'group' => 'SCF',
     ); 
   }
 
   function setUp() {
-    parent::setUp('scf_collections');
+    parent::setUp('journalstream');
     $this->biblio_nodes = array( 
       0 => $this->createBiblioNode(),
       1 => $this->createBiblioNode(),
@@ -144,7 +144,7 @@ class SCFLibraryAPITestCase extends SCFCollectionsWebTestCase {
   }
 
   /**
-    * Test scf_collections_add_to_queue
+    * Test journalstream_add_to_queue
   */
   function testAddToQueueHook() {
     $queue_nodes = array();
@@ -160,33 +160,33 @@ class SCFLibraryAPITestCase extends SCFCollectionsWebTestCase {
     $node = $this->drupalGetNodeByTitle($edit['title']);
     $this->assertNotEqual($node,FALSE);
     //Test Not Reviewed
-    scf_collections_add_to_queue($queue_nodes,$node->nid,'not_reviewed');
+    journalstream_add_to_queue($queue_nodes,$node->nid,'not_reviewed');
     $node = node_load($node->nid);
     $this->assertFalse(empty($node->field_not_reviewed_nodes));
     //Test Accepted
     $node = node_load($node->nid);
-    scf_collections_add_to_queue($queue_nodes,$node->nid,'accepted');
+    journalstream_add_to_queue($queue_nodes,$node->nid,'accepted');
     $this->assertFalse(empty($node->field_accepted_nodes));
     //Test Rejected
     $node = node_load($node->nid);
-    scf_collections_add_to_queue($queue_nodes,$node->nid,'rejected');
+    journalstream_add_to_queue($queue_nodes,$node->nid,'rejected');
     $this->assertFalse(empty($node->field_rejected_nodes));
   }
 }
 
-class SCFCollectionsViewsTestCase extends SCFCollectionsWebTestCase{
+class JournalStreamViewsTestCase extends JournalStreamWebTestCase{
   protected $topic_queue_node;
 
   public static function getInfo() {
     return array(
-      'name' => 'SCF Collections - Views Test Case',
+      'name' => 'JournalStream - Views Test Case',
       'description' => 'Tests SCF Library Views (moderation queue)',
       'group' => 'SCF',
     ); 
   }
 
   function setUp() {
-    parent::setUp('scf_collections');
+    parent::setUp('journalstream');
     $this->createTopicQueue();
   }
 
@@ -203,23 +203,24 @@ class SCFCollectionsViewsTestCase extends SCFCollectionsWebTestCase{
       $rejected_nodes[] = $this->createBiblioNode();
       $i++;
     }
+
     function get_nid($val) {
       return $val->nid;
     }
     //Test Not Reviewed Queue
-    scf_collections_add_to_queue(array_map('get_nid',$not_reviewed_nodes),$this->topic_queue_node->nid,'not_reviewed');
+    journalstream_add_to_queue(array_map('get_nid',$not_reviewed_nodes),$this->topic_queue_node->nid,'not_reviewed');
     $node = node_load($this->topic_queue_node->nid);
     $this->assertFalse(empty($node->field_not_reviewed_nodes));
     $this->drupalGet('node/' . $this->topic_queue_node->nid . '/not_reviewed');
     $this->assertText($not_reviewed_nodes[0]->title);
     //Test Accepted Queue
-    scf_collections_add_to_queue(array_map('get_nid',$accepted_nodes),$this->topic_queue_node->nid,'accepted');
+    journalstream_add_to_queue(array_map('get_nid',$accepted_nodes),$this->topic_queue_node->nid,'accepted');
     $node = node_load($this->topic_queue_node->nid);
     $this->assertFalse(empty($node->field_accepted_nodes));
     $this->drupalGet('node/' . $this->topic_queue_node->nid . '/accepted');
     $this->assertText($accepted_nodes[0]->title);
     //Test Rejected Queue
-    scf_collections_add_to_queue(array_map('get_nid',$rejected_nodes),$this->topic_queue_node->nid,'rejected');
+    journalstream_add_to_queue(array_map('get_nid',$rejected_nodes),$this->topic_queue_node->nid,'rejected');
     $node = node_load($this->topic_queue_node->nid);
     $this->assertFalse(empty($node->field_rejected_nodes));
     $this->drupalGet('node/' . $this->topic_queue_node->nid . '/rejected');

@@ -3,14 +3,14 @@
 /** 
  * Implements hook_menu()
 */
-function scf_biblio_import_menu() {
+function journalstream_biblio_import_menu() {
   $items = array();
   $items['node/%node/import'] = array(
     'title' => 'Pubmed Import',
     'type' => MENU_LOCAL_TASK,
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('scf_biblio_import_form'),
-    'access callback' => 'scf_biblio_import_local_task_loader',
+    'page arguments' => array('journalstream_biblio_import_form'),
+    'access callback' => 'journalstream_biblio_import_local_task_loader',
     'access arguments' => array(1),
     'weight' => 8,
   );
@@ -20,7 +20,7 @@ function scf_biblio_import_menu() {
 /**
  * Implements hook_admin_paths().
  */
-function scf_biblio_import_admin_paths() {
+function journalstream_biblio_import_admin_paths() {
   $paths = array( 
     'node/*/import' => TRUE,
   );
@@ -29,16 +29,16 @@ function scf_biblio_import_admin_paths() {
 
 
 /**
- * Access callback for ONLY displaying the scf_collections local tasks
- * if the node type is SCFC_TOPIC_QUEUE_TYPE (defined in scf_collections module)
+ * Access callback for ONLY displaying the journalstream_collections local tasks
+ * if the node type is SCFC_TOPIC_QUEUE_TYPE (defined in journalstream_collections module)
 */
-function scf_biblio_import_local_task_loader($node) {
+function journalstream_biblio_import_local_task_loader($node) {
   global $user;
 
   //Check node access perms
   $access_granted = node_access('update', $node);
 
-  if($node->type == SCFC_TOPIC_QUEUE_TYPE && $access_granted) {
+  if($node->type == JS_TOPIC_QUEUE_TYPE && $access_granted) {
     return TRUE;
   }
   else {
@@ -54,7 +54,7 @@ function scf_biblio_import_local_task_loader($node) {
  * @return
  *   An array which will be used by the form builder to build the import form
  */
-function scf_biblio_import_form($form_state) {
+function journalstream_biblio_import_form($form_state) {
   global $user;
   $node = menu_get_object();
   $queue_options = array( 
@@ -68,13 +68,13 @@ function scf_biblio_import_form($form_state) {
     '#type' => 'value',
     '#value' => 'biblio_pm',
   );
-  $form['scf_biblio_import_file'] = array (
+  $form['journalstream_biblio_import_file'] = array (
     '#type' => 'file',
     '#title' => t('Import file'),
     '#size' => 60,
     '#description' => t('A CSV file containing list of Pubmed ID\'s to import.'),
   );
-  $form['scf_biblio_import_raw'] = array (
+  $form['journalstream_biblio_import_raw'] = array (
     '#type' => 'textarea',
     '#title' => t('Import data'),
     '#default_value' => '',
@@ -110,44 +110,44 @@ function scf_biblio_import_form($form_state) {
 }  
 
 /**
- * Implementation of hook_validate() for the scf_biblio_import_form.
+ * Implementation of hook_validate() for the journalstream_biblio_import_form.
  */
-function scf_biblio_import_form_validate($form, &$form_state) {
+function journalstream_biblio_import_form_validate($form, &$form_state) {
   $op = $form_state['values']['op'];
   $filetype = $form_state['values']['filetype'];
 
   // Test for either the raw input or the file.
-  if (!$form_state['values']['scf_biblio_import_raw'] && !$_FILES['files']['name']['scf_biblio_import_file']) {
-    form_set_error('scf_biblio_import_form', t("You must either select a file or paste import data."));
+  if (!$form_state['values']['journalstream_biblio_import_raw'] && !$_FILES['files']['name']['journalstream_biblio_import_file']) {
+    form_set_error('journalstream_biblio_import_form', t("You must either select a file or paste import data."));
   }
 
   if ($op == t('Import') && $filetype == "none") {
-    form_set_error('scf_biblio_import_form', t("Error: You must select a file type"));
+    form_set_error('journalstream_biblio_import_form', t("Error: You must select a file type"));
   } 
 
-  if (!$form_state['values']['scf_biblio_import_raw'] && $error = $_FILES['files']['error']['scf_biblio_import_file']) {
+  if (!$form_state['values']['journalstream_biblio_import_raw'] && $error = $_FILES['files']['error']['journalstream_biblio_import_file']) {
     switch ($error){
-      case 1: form_set_error('scf_biblio_import_form', t("The uploaded file exceeds the upload_max_filesize directive in php.ini."));
+      case 1: form_set_error('journalstream_biblio_import_form', t("The uploaded file exceeds the upload_max_filesize directive in php.ini."));
       break;
-      case 2: form_set_error('scf_biblio_import_form', t("The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form."));
+      case 2: form_set_error('journalstream_biblio_import_form', t("The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form."));
       break;
-      case 3: form_set_error('scf_biblio_import_form', t("The uploaded file was only partially uploaded."));
+      case 3: form_set_error('journalstream_biblio_import_form', t("The uploaded file was only partially uploaded."));
       break;
-      case 4: form_set_error('scf_biblio_import_form', t("No file was uploaded."));
+      case 4: form_set_error('journalstream_biblio_import_form', t("No file was uploaded."));
       break;
-      case 6: form_set_error('scf_biblio_import_form', t("Missing a temporary folder."));
+      case 6: form_set_error('journalstream_biblio_import_form', t("Missing a temporary folder."));
       break;
-      case 7: form_set_error('scf_biblio_import_form', t("Failed to write file to disk."));
+      case 7: form_set_error('journalstream_biblio_import_form', t("Failed to write file to disk."));
       break;
-      case 8: form_set_error('scf_biblio_import_form', t("File upload stopped by extension."));
+      case 8: form_set_error('journalstream_biblio_import_form', t("File upload stopped by extension."));
     }
   }
 }
 
 /**
- * Implementation of hook_submit() for the scf_biblio_import_form.
+ * Implementation of hook_submit() for the journalstream_biblio_import_form.
  */
-function scf_biblio_import_form_submit($form, & $form_state) {
+function journalstream_biblio_import_form_submit($form, & $form_state) {
   global $batch_proc;
   global $session_id;
   global $user;
@@ -168,7 +168,7 @@ function scf_biblio_import_form_submit($form, & $form_state) {
   }
 
   // Stores the raw input data in a file.
-  if ($raw = $form_state['values']['scf_biblio_import_raw']) {
+  if ($raw = $form_state['values']['journalstream_biblio_import_raw']) {
     // In the case of a raw input containing no LF, we check if it contains
     // a comma separated list of IDs and format it as LF separated list.
     if (strpos($raw, "\n") === FALSE) {
@@ -177,7 +177,7 @@ function scf_biblio_import_form_submit($form, & $form_state) {
     $import_file = file_save_data($raw, 'temporary://pow_raw_import' . mt_rand());
   }
   else {
-    $import_file = file_save_upload('scf_biblio_import_file');
+    $import_file = file_save_upload('journalstream_biblio_import_file');
   }
 
   if(!$import_file) {
@@ -193,11 +193,11 @@ function scf_biblio_import_form_submit($form, & $form_state) {
     $batch_op = array(
       'title' => t('Importing @filename', array('@filename' => $import_file->filename . $filesize)),
       'operations' => array(
-        array('scf_biblio_import', array($import_file, $filetype, $userid, $terms, $batch_proc, $session_id)),
-        array('scf_biblio_import_batch_operations', array($session_id, $user, $userid, $terms))
+        array('journalstream_biblio_import', array($import_file, $filetype, $userid, $terms, $batch_proc, $session_id)),
+        array('journalstream_biblio_import_batch_operations', array($session_id, $user, $userid, $terms))
       ),
       'progressive' => TRUE,
-      'finished' => 'scf_biblio_import_batch_finished',
+      'finished' => 'journalstream_biblio_import_batch_finished',
       'init_message' => t('Parsing file...'),
       'progress_message' => t('Saving nodes...'),
       #'file' => './' . drupal_get_path('module', 'biblio') . '/includes/biblio.import.export.inc'
@@ -208,9 +208,9 @@ function scf_biblio_import_form_submit($form, & $form_state) {
     batch_process("$base/import");
   }
   else {
-    $pnids= scf_biblio_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy);
+    $pnids= journalstream_biblio_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy);
     //Add imported nodes to queue
-    scf_collections_add_to_queue($pnids,$nid, $queue);  
+    journalstream_collections_add_to_queue($pnids,$nid, $queue);  
     drupal_set_message(t("Successfully imported " . count($pnids) . " papers."));
   }
   file_delete($import_file);
@@ -222,7 +222,7 @@ function scf_biblio_import_form_submit($form, & $form_state) {
 /**
  * Implements biblio_import()
 */
-function scf_biblio_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy) {
+function journalstream_biblio_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy) {
   require('./'. drupal_get_path('module', 'biblio') .'/includes/biblio.import.export.inc');
   return biblio_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy);
 }
@@ -230,11 +230,11 @@ function scf_biblio_import($import_file, $filetype, $userid, $terms, $batch_proc
 /**
  * Implements biblio_import_batch_operations()
 */
-function scf_biblio_import_batch_operations($session_id, $user, $userid, $terms, &$context) {
+function journalstream_biblio_import_batch_operations($session_id, $user, $userid, $terms, &$context) {
 } 
 
 /**
  * Implements biblio_import_batch_finished()
 */
-function scf_biblio_import_batch_finished($success, $results, $operations) {
+function journalstream_biblio_import_batch_finished($success, $results, $operations) {
 }

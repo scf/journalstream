@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * scf_collections.features.inc
+ * journalstream.features.inc
  */
 
 /**
  * Implementation of hook_ctools_plugin_api().
  */
-function scf_collections_ctools_plugin_api() {
+function journalstream_ctools_plugin_api() {
   list($module, $api) = func_get_args();
   if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => 1);
@@ -17,7 +17,7 @@ function scf_collections_ctools_plugin_api() {
 /**
  * Implementation of hook_views_api().
  */
-function scf_collections_views_api() {
+function journalstream_views_api() {
   list($module, $api) = func_get_args();
   if ($module == "views" && $api == "views_default") {
     return array("version" => 3.0);
@@ -27,7 +27,7 @@ function scf_collections_views_api() {
 /**
  * Implementation of hook_node_info().
  */
-function scf_collections_node_info() {
+function journalstream_node_info() {
   $items = array(
     'collection' => array(
       'name' => t('Collection'),

@@ -1,10 +1,10 @@
 <?php
 
-class SCFBiblioQueryWebTestCase extends DrupalWebTestCase {
+class JournalStreamBiblioQueryWebTestCase extends DrupalWebTestCase {
   protected $topic_queue_node;
   function setUp() {
     // Enable any module that you will need in your tests.
-    parent::setUp('scf_biblio_query');
+    parent::setUp('journalstream_biblio_query');
     $web_user = $this->drupalCreateUser(array('create biblio_topic_query content', 'create topic_queue content'));
     $this->drupalLogin($web_user);
     $this->createTopicQueueNode();
@@ -21,11 +21,11 @@ class SCFBiblioQueryWebTestCase extends DrupalWebTestCase {
   }
 }
 
-class SCFBiblioQueryNodeCreationTestCase extends SCFBiblioQueryWebTestCase{
+class JournalStreamBiblioQueryNodeCreationTestCase extends JournalStreamBiblioQueryWebTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'SCF Biblio Query Node Creation',
+      'name' => 'JournalStream Biblio Query - Node Creation',
       'description' => 'Tests that a Biblio Query node type has been created',
       'group' => 'SCF',
     ); 
@@ -51,11 +51,11 @@ class SCFBiblioQueryNodeCreationTestCase extends SCFBiblioQueryWebTestCase{
   }
 }
 
-class SCFBiblioQueryTestPubmedQuery extends SCFBiblioQueryWebTestCase{
+class JournalStreamBiblioQueryTestPubmedQuery extends JournalStreamBiblioQueryWebTestCase{
 
   public static function getInfo(){
     return array(
-      'name' => 'SCF Biblio Query Test Pubmed Query',
+      'name' => 'JournalStream Biblio Query  - Test Pubmed Query',
       'description' => 'Creates a query node and tests against the Biblio Pubmed interface (BiblioEntrezPubmedArticle)',
       'group' => 'SCF',
     ); 

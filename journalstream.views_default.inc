@@ -1,17 +1,17 @@
 <?php
 /**
  * @file
- * scf_collections.views_default.inc
+ * journalstream.views_default.inc
  */
 
 /**
  * Implementation of hook_views_default_views().
  */
-function scf_collections_views_default_views() {
+function journalstream_views_default_views() {
   $export = array();
 
   $view = new view;
-  $view->name = 'scf_collections_queue';
+  $view->name = 'journalstream_queue';
   $view->description = '';
   $view->tag = 'default';
   $view->base_table = 'node';
@@ -214,7 +214,7 @@ function scf_collections_views_default_views() {
   $handler->display->display_options['fields']['field_accepted_nodes']['delta_offset'] = '0';
   $handler->display->display_options['fields']['field_accepted_nodes']['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_accepted_nodes']['field_api_classes'] = 0;
-  $translatables['scf_collections_queue'] = array(
+  $translatables['journalstream_queue'] = array(
     t('Master'),
     t('Accepted Papers'),
     t('more'),
@@ -235,7 +235,7 @@ function scf_collections_views_default_views() {
     t('Rejected Papers'),
     t('Preview'),
   );
-  $export['scf_collections_queue'] = $view;
+  $export['journalstream_queue'] = $view;
 
   return $export;
 }

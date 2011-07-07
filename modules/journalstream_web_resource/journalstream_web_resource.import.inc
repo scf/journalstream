@@ -1,6 +1,6 @@
 <?php
 
-function scf_web_resource_import_form($form_state) {
+function journalstream_web_resource_import_form($form_state) {
   global $user;
   $node = menu_get_object();
   $queue_options = array( 
@@ -50,36 +50,36 @@ function scf_web_resource_import_form($form_state) {
   return $form;
 }
 
-function scf_web_resource_import_form_validate($form, &$form_state) {
+function journalstream_web_resource_import_form_validate($form, &$form_state) {
   $op = $form_state['values']['op'];
    // Test for either the raw input or the file.
   if (!$form_state['values']['import_raw'] && !$_FILES['files']['name']['import_file']) {
-    form_set_error('scf_web_resource_import_form', t("You must either select a file or paste import data."));
+    form_set_error('journalstream_web_resource_import_form', t("You must either select a file or paste import data."));
   }
 
   if (!$form_state['values']['import_raw'] && $error = $_FILES['files']['error']['import_file']) {
     switch ($error){
-      case 1: form_set_error('scf_web_resource_import_form', t("The uploaded file exceeds the upload_max_filesize directive in php.ini."));
+      case 1: form_set_error('journalstream_web_resource_import_form', t("The uploaded file exceeds the upload_max_filesize directive in php.ini."));
       break;
-      case 2: form_set_error('scf_web_resource_import_form', t("The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form."));
+      case 2: form_set_error('journalstream_web_resource_import_form', t("The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form."));
       break;
-      case 3: form_set_error('scf_web_resource_import_form', t("The uploaded file was only partially uploaded."));
+      case 3: form_set_error('journalstream_web_resource_import_form', t("The uploaded file was only partially uploaded."));
       break;
-      case 4: form_set_error('scf_web_resource_import_form', t("No file was uploaded."));
+      case 4: form_set_error('journalstream_web_resource_import_form', t("No file was uploaded."));
       break;
-      case 6: form_set_error('scf_web_resource_import_form', t("Missing a temporary folder."));
+      case 6: form_set_error('journalstream_web_resource_import_form', t("Missing a temporary folder."));
       break;
-      case 7: form_set_error('scf_web_resource_import_form', t("Failed to write file to disk."));
+      case 7: form_set_error('journalstream_web_resource_import_form', t("Failed to write file to disk."));
       break;
-      case 8: form_set_error('scf_web_resource_import_form', t("File upload stopped by extension."));
+      case 8: form_set_error('journalstream_web_resource_import_form', t("File upload stopped by extension."));
     }
   } 
 }
 
 /**
- * Implementation of hook_submit() for the scf_biblio_import_form.
+ * Implementation of hook_submit() for the journalstream_biblio_import_form.
  */
-function scf_web_resource_import_form_submit($form, & $form_state) {
+function journalstream_web_resource_import_form_submit($form, & $form_state) {
   global $batch_proc;
   global $session_id;
   global $user;
@@ -110,12 +110,12 @@ function scf_web_resource_import_form_submit($form, & $form_state) {
   $nids = array();
   foreach($url_list as $url) {
     if(!empty($url) && valid_url($url, TRUE)) {
-      if($nid = scf_web_resource_import_by_url($url)) {
+      if($nid = journalstream_web_resource_import_by_url($url)) {
         $nids[] = $nid;
       }
     }
   }
-  scf_collections_add_to_queue($nids,$queue_nid,$queue);
+  journalstream_collections_add_to_queue($nids,$queue_nid,$queue);
   drupal_set_message(t("Successfully imported " . count($nids) . " " . SCF_WEB_RESOURCE_NODE_TYPE . "."));
   file_delete($import_file);
   //Go to assigned queue

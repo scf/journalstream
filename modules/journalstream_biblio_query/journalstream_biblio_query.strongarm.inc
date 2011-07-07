@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * scf_biblio_query.strongarm.inc
+ * journalstream_biblio_query.strongarm.inc
  */
 
 /**
  * Implementation of hook_strongarm().
  */
-function scf_biblio_query_strongarm() {
+function journalstream_biblio_query_strongarm() {
   $export = array();
 
   $strongarm = new stdClass;

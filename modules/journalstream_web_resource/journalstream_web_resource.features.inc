@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * scf_web_resource.features.inc
+ * journalstream_web_resource.features.inc
  */
 
 /**
  * Implementation of hook_ctools_plugin_api().
  */
-function scf_web_resource_ctools_plugin_api() {
+function journalstream_web_resource_ctools_plugin_api() {
   list($module, $api) = func_get_args();
   if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => 1);
@@ -17,7 +17,7 @@ function scf_web_resource_ctools_plugin_api() {
 /**
  * Implementation of hook_node_info().
  */
-function scf_web_resource_node_info() {
+function journalstream_web_resource_node_info() {
   $items = array(
     'web_resource' => array(
       'name' => t('Web Resource'),

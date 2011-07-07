@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * scf_biblio_query.features.field.inc
+ * journalstream_biblio_query.features.field.inc
  */
 
 /**
  * Implementation of hook_field_default_fields().
  */
-function scf_biblio_query_field_default_fields() {
+function journalstream_biblio_query_field_default_fields() {
   $fields = array();
 
   // Exported field: 'node-biblio_topic_query-body'

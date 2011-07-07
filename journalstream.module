@@ -4,55 +4,55 @@
  * Code for the scf_library feature.
  */
 
-include_once('scf_collections.features.inc');
-include_once('scf_collections.features.field.inc');
+include_once('journalstream.features.inc');
+include_once('journalstream.features.field.inc');
 
 /** Constants **/
-define('SCFC_TOPIC_QUEUE_TYPE','topic_queue'); //Node type of topic queue
-define('SCF_COLLECTIONS_QUEUE_VIEW', 'scf_collections_queue');
-define('SCFC_NOT_REVIEWED','not_reviewed');
-define('SCFC_ACCEPTED', 'accepted');
-define('SCFC_REJECTED', 'rejected');
+define('JS_TOPIC_QUEUE_TYPE','topic_queue'); //Node type of topic queue
+define('JS_COLLECTIONS_QUEUE_VIEW', 'journalstream_queue');
+define('JS_NOT_REVIEWED','not_reviewed');
+define('JS_ACCEPTED', 'accepted');
+define('JS_REJECTED', 'rejected');
 
 
 /**
  * Implements hook_menu()
  */
-function scf_collections_menu() {
+function journalstream_menu() {
   $items = array();
   $items['node/%node/not_reviewed'] = array(
     'title' => 'Not Reviewed',
     'type' => MENU_LOCAL_TASK,
-    'page callback' => 'scf_collections_queue_view',
+    'page callback' => 'journalstream_queue_view',
     'page arguments' => array(1,2),
-    'access callback' => 'scf_collections_local_task_loader',
+    'access callback' => 'journalstream_local_task_loader',
     'access arguments' => array(1),
     'weight' => 5,
   );
   $items['node/%node/accepted'] = array(
     'title' => 'Accepted',
     'type' => MENU_LOCAL_TASK,
-    'page callback' => 'scf_collections_queue_view',
+    'page callback' => 'journalstream_queue_view',
     'page arguments' => array(1,2),
-    'access callback' => 'scf_collections_local_task_loader',
+    'access callback' => 'journalstream_local_task_loader',
     'access arguments' => array(1),
     'weight' => 6,
   );
   $items['node/%node/rejected'] = array(
     'title' => 'Rejected',
     'type' => MENU_LOCAL_TASK,
-    'page callback' => 'scf_collections_queue_view',
+    'page callback' => 'journalstream_queue_view',
     'page arguments' => array(1,2),
-    'access callback' => 'scf_collections_local_task_loader',
+    'access callback' => 'journalstream_local_task_loader',
     'access arguments' => array(1),
     'weight' => 7,
   );
   $items['node/%node/preview'] = array(
     'title' => 'Preview',
     'type' => MENU_LOCAL_TASK,
-    'page callback' => 'scf_collections_queue_view',
+    'page callback' => 'journalstream_queue_view',
     'page arguments' => array(1,2),
-    'access callback' => 'scf_collections_local_task_loader',
+    'access callback' => 'journalstream_local_task_loader',
     'access arguments' => array(1),
     'weight' => 8,
   );
@@ -62,7 +62,7 @@ function scf_collections_menu() {
 /**
  * Implements hook_admin_paths().
  */
-function scf_collections_admin_paths() {
+function journalstream_admin_paths() {
   $paths = array( 
     'node/*/not_reviewed' => TRUE,
     'node/*/accepted' => TRUE,
@@ -80,8 +80,8 @@ function scf_collections_admin_paths() {
  * @param $review_status
  *  The review status of the node
  */
-function scf_collections_queue_view($node, $review_status) {
-  $view = views_get_view(SCF_COLLECTIONS_QUEUE_VIEW);
+function journalstream_queue_view($node, $review_status) {
+  $view = views_get_view(JS_COLLECTIONS_QUEUE_VIEW);
   $output = '';
   $statuses = array('not_reviewed','accepted','rejected','preview');
   $view_output = array();
@@ -90,7 +90,7 @@ function scf_collections_queue_view($node, $review_status) {
   }
   // Add publish form to preview page
   if($review_status == 'preview') {
-    $view_output['content'] .= drupal_render(drupal_get_form('scf_collections_queue_publish_form',array('nid' => $node->nid))); 
+    $view_output['content'] .= drupal_render(drupal_get_form('journalstream_queue_publish_form',array('nid' => $node->nid))); 
   }
   return (!empty($view_output['content'])) ? $view_output['content'] : '';
 }
@@ -99,7 +99,7 @@ function scf_collections_queue_view($node, $review_status) {
  * Implements hook_form
  * Displays a button/form for publishing a queue
 */
-function scf_collections_queue_publish_form($form, &$form_state, $extra) {
+function journalstream_queue_publish_form($form, &$form_state, $extra) {
   $nid = (isset($extra['nid'])) ? $extra['nid'] : false;
   if($nid) {
     $form['publish'] = array( 
@@ -114,14 +114,14 @@ function scf_collections_queue_publish_form($form, &$form_state, $extra) {
 /**
  * Add default node template to theme suggestion
 **/
-function scf_collections_theme_registry_alter(&$theme_registry) {
-  $mod_path = drupal_get_path('module', 'scf_collections') . '/templates';
+function journalstream_theme_registry_alter(&$theme_registry) {
+  $mod_path = drupal_get_path('module', 'journalstream') . '/templates';
   $theme_registry_copy = $theme_registry;       // munge on a copy
-  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'scf_collections', $mod_path);
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'journalstream', $mod_path);
   $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
   $hooks = array('node');
   foreach ($hooks as $h) {
-    _scf_collections_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
+    _journalstream_insert_after_first_element($theme_registry[$h]['theme paths'], $mod_path);
   }
   // Add Theme hook for altering view
   // Code from http://drupal.org/node/303586#comment-2552974
@@ -131,7 +131,7 @@ function scf_collections_theme_registry_alter(&$theme_registry) {
 /**
  * Helper function for re-ordering arrays (needed by theme_registry_alter)
 **/
-function _scf_collections_insert_after_first_element(&$a, $element) {
+function _journalstream_insert_after_first_element(&$a, $element) {
   if(is_array($a)) {
     $first_element = array_shift($a);
     array_unshift($a, $first_element, $element);
@@ -140,16 +140,16 @@ function _scf_collections_insert_after_first_element(&$a, $element) {
 
 
 /** 
- * Access callback for ONLY displaying the scf_collections local tasks
- * if the node type is SCFC_TOPIC_QUEUE_TYPE 
+ * Access callback for ONLY displaying the journalstream local tasks
+ * if the node type is JS_TOPIC_QUEUE_TYPE 
  */
-function scf_collections_local_task_loader($node) {
+function journalstream_local_task_loader($node) {
   global $user;
 
   //Check node access perms
   $access_granted = node_access('update', $node);
 
-  if($node->type == SCFC_TOPIC_QUEUE_TYPE && $access_granted) {
+  if($node->type == JS_TOPIC_QUEUE_TYPE && $access_granted) {
     return TRUE;
   }
   else {
@@ -160,7 +160,7 @@ function scf_collections_local_task_loader($node) {
 /**
  * Implements hook_form_alter()
 */
-function scf_collections_form_alter(&$form, &$form_state, $form_id) {
+function journalstream_form_alter(&$form, &$form_state, $form_id) {
   //Hide elements from the topic queue node form
   if($form_id == 'topic_queue_node_form') {
     unset($form['field_not_reviewed_nodes']);
@@ -196,7 +196,7 @@ function scf_collections_form_alter(&$form, &$form_state, $form_id) {
 *
 * This function injects a moderation form to the normal node teaser view
 */
-function scf_collections_preprocess_node(&$vars) {
+function journalstream_preprocess_node(&$vars) {
   if($vars['view_mode'] == 'teaser_moderation') {
     $vars['theme_hook_suggestions'][] = 'node__teaser_moderation';
     $node = node_load($vars['nid']);
@@ -204,7 +204,7 @@ function scf_collections_preprocess_node(&$vars) {
     $parent_node = menu_get_object();
     $vars['content'] = array();
     $vars['moderation_form']['#markup'] = '<div class="node-moderation-form-wrapper">';
-    $vars['moderation_form']['#markup'] .= drupal_render(drupal_get_form('scf_collections_moderation_form', array('parent_node' => $parent_node, 'node' => $node)));
+    $vars['moderation_form']['#markup'] .= drupal_render(drupal_get_form('journalstream_moderation_form', array('parent_node' => $parent_node, 'node' => $node)));
     $vars['moderation_form']['#markup'] .= '</div>';
     $vars['content']['#markup'] = drupal_render($node_view);
   }
@@ -213,7 +213,7 @@ function scf_collections_preprocess_node(&$vars) {
 /**
  * Implements hook_node_insert()
  */
-function scf_collections_node_insert($node) {
+function journalstream_node_insert($node) {
   //Remove items from topic queue once a collection has been inserted
   if($node->type == 'collection') {
     $topic_queue_node = (isset($node->field_topic_queue[LANGUAGE_NONE][0]['nid'])) ? node_load($node->field_topic_queue[LANGUAGE_NONE][0]['nid']) : false;
@@ -238,7 +238,7 @@ function scf_collections_node_insert($node) {
 * Implements hook_entity_info_alter().
 * Adds a moderation form view for a node teaser.
 */
-function scf_collections_entity_info_alter(&$entity_info) {
+function journalstream_entity_info_alter(&$entity_info) {
   $entity_info['node']['view modes']['teaser_moderation'] = array(
     'label' => t('SCF Collection Moderation'),
     'custom settings' => TRUE,
@@ -249,18 +249,18 @@ function scf_collections_entity_info_alter(&$entity_info) {
  * Implements hook_form()
  * Renders the node moderation form
 */
-function scf_collections_moderation_form($form, &$form_state, $extra = null) {
+function journalstream_moderation_form($form, &$form_state, $extra = null) {
   $review_statuses = array('not_reviewed' => 'Not Reviewed', 'accepted' => 'Accepted', 'rejected' => 'Rejected');
   $nid = isset($extra['node']->nid) ? $extra['node']->nid : '';
   $pnid = isset($extra['parent_node']->nid) ? $extra['parent_node']->nid : ''; 
-  $default = _scf_collections_get_node_queue($extra['parent_node'], $nid);
+  $default = _journalstream_get_node_queue($extra['parent_node'], $nid);
   $form['moderation_form']['review_status'] = array(
     '#title' => 'paper review status',
     '#type' => 'radios',
     '#options' => $review_statuses,
     '#default_value' => $default,
     '#ajax' => array(
-      'callback' => 'scf_collections_moderation_form_callback', 
+      'callback' => 'journalstream_moderation_form_callback', 
     ),
   );
   $form['parent_node'] = array('#type' => 'value', '#value' => $pnid);
@@ -271,9 +271,9 @@ function scf_collections_moderation_form($form, &$form_state, $extra = null) {
 /**
  * Callback for handling moderation calls
  */
-function scf_collections_moderation_form_callback($form, $form_state) {
+function journalstream_moderation_form_callback($form, $form_state) {
   //Add the node to the correct queue
-  scf_collections_add_to_queue(array($form_state['values']['node']), $form_state['values']['parent_node'], $form_state['values']['review_status']);
+  journalstream_add_to_queue(array($form_state['values']['node']), $form_state['values']['parent_node'], $form_state['values']['review_status']);
   // Dom element containing node
   $element = "#node-" . $form_state['values']['node'] . "-moderation-form"; 
   $commands = array();
@@ -292,7 +292,7 @@ function scf_collections_moderation_form_callback($form, $form_state) {
  * @param $nid
  *   Nid of node to search by
 */
-function _scf_collections_get_node_queue($parent_node, $nid) {
+function _journalstream_get_node_queue($parent_node, $nid) {
   //Iterate through Not Reviewed nodes
   if(!empty($parent_node->field_not_reviewed_nodes[LANGUAGE_NONE])) {
     foreach($parent_node->field_not_reviewed_nodes[LANGUAGE_NONE] as $row) {
@@ -330,11 +330,11 @@ function _scf_collections_get_node_queue($parent_node, $nid) {
  *  The Node ID of the topic queue.
  * @param $queue
  *   The queue status to append to. Options are:
- *    SCFC_NOT_REVIEWED
- *    SCFC_ACCEPTED
- *    SCFC_REJECTED
+ *    JS_NOT_REVIEWED
+ *    JS_ACCEPTED
+ *    JS_REJECTED
 */
-function scf_collections_add_to_queue($nids, $queue_nid, $queue = SCFC_NOT_REVIEWED) {
+function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED) {
   $qnode = node_load($queue_nid);
   if(!$qnode) {
     return;
@@ -367,10 +367,10 @@ function scf_collections_add_to_queue($nids, $queue_nid, $queue = SCFC_NOT_REVIE
 
     //Add Node to new queue
     switch($queue) {
-      case SCFC_ACCEPTED:
+      case JS_ACCEPTED:
         $qnode->field_accepted_nodes[LANGUAGE_NONE][] = $this_nid; 
         break;
-      case SCFC_REJECTED:
+      case JS_REJECTED:
         $qnode->field_rejected_nodes[LANGUAGE_NONE][] = $this_nid; 
         break;
       default:

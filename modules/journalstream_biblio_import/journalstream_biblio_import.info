@@ -1,0 +1,7 @@
+core = "7.x"
+dependencies[] = "journalstream"
+description = "Provided an interface to allow Pubmed biblio imports"
+files[] = "journalstream_biblio_import.test"
+name = "JournalStream Biblio Import"
+package = "SCF"
+php = "5.2.4"

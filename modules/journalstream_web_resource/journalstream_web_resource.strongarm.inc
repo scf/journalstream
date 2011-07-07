@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * scf_web_resource.strongarm.inc
+ * journalstream_web_resource.strongarm.inc
  */
 
 /**
  * Implementation of hook_strongarm().
  */
-function scf_web_resource_strongarm() {
+function journalstream_web_resource_strongarm() {
   $export = array();
 
   $strongarm = new stdClass;

@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * scf_collections.features.field.inc
+ * journalstream.features.field.inc
  */
 
 /**
  * Implementation of hook_field_default_fields().
  */
-function scf_collections_field_default_fields() {
+function journalstream_field_default_fields() {
   $fields = array();
 
   // Exported field: 'node-collection-body'

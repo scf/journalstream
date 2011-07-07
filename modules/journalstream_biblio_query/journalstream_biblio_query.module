@@ -1,20 +1,20 @@
 <?php
 /**
  * @file
- * Code for the scf_biblio_query feature.
+ * Code for the journalstream_biblio_query feature.
  */
 
-include_once('scf_biblio_query.features.inc');
-include_once('scf_biblio_query.import.inc');
+include_once('journalstream_biblio_query.features.inc');
+include_once('journalstream_biblio_query.import.inc');
 
-define('SCF_BIBLIO_QUERY_NODE_TYPE', 'biblio_topic_query');
+define('JS_BIBLIO_QUERY_NODE_TYPE', 'biblio_topic_query');
 
 /**
  * Implements hook_cron_queue_info().
  */
-function scf_biblio_query_cron_queue_info() {
-  $queues['scf_biblio_query_feeds'] = array(
-    'worker callback' => 'scf_biblio_query_execute',
+function journalstream_biblio_query_cron_queue_info() {
+  $queues['journalstream_biblio_query_feeds'] = array(
+    'worker callback' => 'journalstream_biblio_query_execute',
     'time' => 60,
   );
   return $queues;
@@ -23,10 +23,10 @@ function scf_biblio_query_cron_queue_info() {
 /**
  * Implements hook_node_view()
 */
-function scf_biblio_query_node_view($node, $view_mode, $langcode) {
+function journalstream_biblio_query_node_view($node, $view_mode, $langcode) {
   if($node->type == 'biblio_topic_query') {
     $node->content['query_form'] = array(
-      '#markup' => drupal_render(drupal_get_form('scf_biblio_query_execute_form')),
+      '#markup' => drupal_render(drupal_get_form('journalstream_biblio_query_execute_form')),
       '#weight' => 10,
     );
   }
@@ -35,7 +35,7 @@ function scf_biblio_query_node_view($node, $view_mode, $langcode) {
 /**
  * Generates a form for executing biblio_query
 */
-function scf_biblio_query_execute_form($form, &$form_state) {
+function journalstream_biblio_query_execute_form($form, &$form_state) {
   $form['description'] = array(
     '#type' => 'markup',
     '#markup' => '<div>' . t('Execute query now.') . '</div>',
@@ -54,12 +54,12 @@ function scf_biblio_query_execute_form($form, &$form_state) {
 /**
  * Generates a form for executing biblio_query
 */
-function scf_biblio_query_execute_form_submit($form, &$form_state) {
+function journalstream_biblio_query_execute_form_submit($form, &$form_state) {
   $operations = array();
-  $operations[] = array('scf_biblio_query_batch_execute',array($form_state['values']['nid']),array());
+  $operations[] = array('journalstream_biblio_query_batch_execute',array($form_state['values']['nid']),array());
   $batch = array(
     'operations' => $operations,
-    'finished' => 'scf_biblio_query_batch_finished',
+    'finished' => 'journalstream_biblio_query_batch_finished',
   );
   batch_set($batch);
 }
@@ -69,7 +69,7 @@ function scf_biblio_query_execute_form_submit($form, &$form_state) {
  *
  * Queues news feeds for updates once their refresh interval has elapsed.
  */
-function scf_biblio_query_cron() {
+function journalstream_biblio_query_cron() {
   // Only query pubmed between 4am and 5am.
   /** Temporarily Disable
   if (date('H') != 4) {
@@ -81,12 +81,12 @@ function scf_biblio_query_cron() {
   $query = new EntityFieldQuery;
   $result = $query
     ->entityCondition('entity_type', 'node')
-    ->propertyCondition('type', SCF_BIBLIO_QUERY_NODE_TYPE)
+    ->propertyCondition('type', JS_BIBLIO_QUERY_NODE_TYPE)
     ->fieldCondition('field_queued','value', 0)
     ->fieldCondition('field_checked','value', $checked, '<')
     ->fieldCondition('field_refresh','value', $never, '!=')
     ->execute();
-  $queue = DrupalQueue::get('scf_biblio_query_feeds');
+  $queue = DrupalQueue::get('journalstream_biblio_query_feeds');
   if(empty($result['node'])) {
     return;
   }
@@ -105,14 +105,14 @@ function scf_biblio_query_cron() {
  * @param $feed node
  *   An object describing the feed to be refreshed.
  */
-function scf_biblio_query_execute($feed) {
+function journalstream_biblio_query_execute($feed) {
   if(!$feed || !is_object($feed)) {
-    watchdog('scf_biblio_query', 'Feed argument passed during execution was invalid.');
+    watchdog('journalstream_biblio_query', 'Feed argument passed during execution was invalid.');
     return;
   }
   module_load_include('php', 'biblio_pm', 'EntrezClient');
   module_load_include('php', 'biblio_pm', 'EntrezPubmedArticle');
-  module_load_include('inc', 'scf_biblio_query', 'scf_biblio_query.import');
+  module_load_include('inc', 'journalstream_biblio_query', 'journalstream_biblio_query.import');
   require_once drupal_get_path('module', 'biblio') .'/includes/biblio.import.export.inc';
 
   // Establish the date range for the query.
@@ -129,7 +129,7 @@ function scf_biblio_query_execute($feed) {
   // This is useful when running the import manually.
   $minDate = $minDate == date('Y/m/d') ? date('Y/m/d', strtotime('-1 day')) : $minDate;
   $maxDate = date('Y/m/d');
-  watchdog('scf_biblio_query', 'Querying pubmed with date ' . $minDate . ' to ' . $maxDate . '.');
+  watchdog('journalstream_biblio_query', 'Querying pubmed with date ' . $minDate . ' to ' . $maxDate . '.');
 
   $Eclient = new BiblioEntrezClient;
   $Eclient->setTerm($feed->query);
@@ -156,7 +156,7 @@ function scf_biblio_query_execute($feed) {
         $node->taxonomy = array_merge($terms, $node->taxonomy);
       }
       if ($dup = biblio_pm_check_pmid($node->biblio_pubmed_id)) {
-        watchdog('scf_biblio_query_' . $node->biblio_pubmed_id, 'The publication @url already exists and was not reimported via the automatic query.', array('@url' => url('node/' . $dup)));
+        watchdog('journalstream_biblio_query_' . $node->biblio_pubmed_id, 'The publication @url already exists and was not reimported via the automatic query.', array('@url' => url('node/' . $dup)));
       }
       else {
         // Attempt to import the publication.
@@ -165,12 +165,12 @@ function scf_biblio_query_execute($feed) {
           // Add node to topic queue
           $queue_nids[] = $node->nid;
 
-          watchdog('scf_biblio_query_' . $node->biblio_pubmed_id, 'PMID ' . $node->biblio_pubmed_id . ' imported via automatic query.');
+          watchdog('journalstream_biblio_query_' . $node->biblio_pubmed_id, 'PMID ' . $node->biblio_pubmed_id . ' imported via automatic query.');
           $imported++;
         }
         catch (Exception $e) {
-          watchdog('scf_biblio_query_' . $node->biblio_pubmed_id, 'Error during import of the publication ID ' . $node->biblio_pubmed_id, array(), WATCHDOG_WARNING);
-          watchdog_exception('scf_biblio_query', $e);
+          watchdog('journalstream_biblio_query_' . $node->biblio_pubmed_id, 'Error during import of the publication ID ' . $node->biblio_pubmed_id, array(), WATCHDOG_WARNING);
+          watchdog_exception('journalstream_biblio_query', $e);
         }
       }
       $node = NULL;
@@ -182,7 +182,7 @@ function scf_biblio_query_execute($feed) {
   if(!empty($feed->field_topic_queue[LANGUAGE_NONE])) {
     foreach($feed->field_topic_queue[LANGUAGE_NONE] as $topic_queue) {
       if(!empty($topic_queue['nid'])) {
-        scf_collections_add_to_queue($queue_nids,$topic_queue['nid']);
+        journalstream_collections_add_to_queue($queue_nids,$topic_queue['nid']);
       }
     }
   }

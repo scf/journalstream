@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * scf_web_resource.features.field.inc
+ * journalstream_web_resource.features.field.inc
  */
 
 /**
  * Implementation of hook_field_default_fields().
  */
-function scf_web_resource_field_default_fields() {
+function journalstream_web_resource_field_default_fields() {
   $fields = array();
 
   // Exported field: 'node-web_resource-body'

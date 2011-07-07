@@ -1,9 +1,9 @@
 <?php
-class SCFBiblioImportWebTestCase extends DrupalWebTestCase {
+class JournalStreamBiblioImportWebTestCase extends DrupalWebTestCase {
   protected $topic_queue_node;
   function setUp() {
     // Enable any module that you will need in your tests.
-    parent::setUp('scf_biblio_import');
+    parent::setUp('journalstream_biblio_import');
     $web_user = $this->drupalCreateUser(array('create topic_queue content', 'edit own topic_queue content'));
     $this->drupalLogin($web_user);
     $this->createTopicQueueNode();
@@ -20,11 +20,11 @@ class SCFBiblioImportWebTestCase extends DrupalWebTestCase {
   }
 }
 
-class SCFBiblioImportQueryTestCase extends SCFBiblioImportWebTestCase {
+class JournalStreamBiblioImportQueryTestCase extends JournalStreamBiblioImportWebTestCase {
 
   public static function getInfo(){
     return array(
-      'name' => 'SCF Biblio Import',
+      'name' => 'JournalStream - Biblio Import',
       'description' => 'Tests Biblio Import form rendering and ensures submissions function properly.',
       'group' => 'SCF',
     ); 
@@ -33,8 +33,8 @@ class SCFBiblioImportQueryTestCase extends SCFBiblioImportWebTestCase {
   function testBiblioImportFormRender() {
     $url = 'node/' . $this->topic_queue_node->nid . '/import';
     $this->drupalGet($url); 
-    $this->assertField('files[scf_biblio_import_file]');
-    $this->assertField('scf_biblio_import_raw');
+    $this->assertField('files[journalstream_biblio_import_file]');
+    $this->assertField('journalstream_biblio_import_raw');
     $this->assertField('queue');
   }
 
