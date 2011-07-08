@@ -121,6 +121,11 @@ function journalstream_biblio_query_execute($feed) {
   $checked = isset($feed->field_checked[LANGUAGE_NONE][0]['value']) ? $feed->field_checked[LANGUAGE_NONE][0]['value'] : time();
   $query = isset($feed->body[LANGUAGE_NONE][0]['value']) ? $feed->body[LANGUAGE_NONE][0]['value'] : NULL;
 
+  if(empty($query)) {
+    watchdog('journalstream_biblio_query', 'Query argument in feed is empty');
+    return;
+  }
+
   $minDate = date('Y/m/d', $checked);
   // Do not fetch papers which are older than 7 days.
   $minDate = $minDate < date('Y/m/d', strtotime('-7 days')) ? date('Y/m/d', strtotime('-7 days')) : $minDate;
@@ -132,7 +137,7 @@ function journalstream_biblio_query_execute($feed) {
   watchdog('journalstream_biblio_query', 'Querying pubmed with date ' . $minDate . ' to ' . $maxDate . '.');
 
   $Eclient = new BiblioEntrezClient;
-  $Eclient->setTerm($feed->query);
+  $Eclient->setTerm($query);
   $Eclient->setReturnMax($feed->field_limit[LANGUAGE_NONE][0]['value']);
   $Eclient->setDateRange($minDate, $maxDate);
   $results = $Eclient->search(0);
@@ -182,7 +187,7 @@ function journalstream_biblio_query_execute($feed) {
   if(!empty($feed->field_topic_queue[LANGUAGE_NONE])) {
     foreach($feed->field_topic_queue[LANGUAGE_NONE] as $topic_queue) {
       if(!empty($topic_queue['nid'])) {
-        journalstream_collections_add_to_queue($queue_nids,$topic_queue['nid']);
+        journalstream_add_to_queue($queue_nids,$topic_queue['nid']);
       }
     }
   }

@@ -83,6 +83,27 @@ class JournalStreamBiblioQueryTestPubmedQuery extends JournalStreamBiblioQueryWe
     $this->assertEqual($initial_biblio_count,0);
   }
 
+  function testBiblioTopicQueryImport() {
+    // Create a node.
+    $edit = array();
+    $edit["title"] = 'Topic Query Title';
+    $edit["body[und][0][value]"] = 'pain'; //PRF Test :)
+    $edit["field_refresh[und][0][value]"] = 3600;
+    $edit["field_checked[und][0][value]"] = 0;
+    $edit["field_queued[und][0][value]"] = 0;
+    $edit["field_description[und][0][value]"] = 'Test Description';
+    $edit["field_modified[und][0][value]"] = time();
+    $edit["field_topic_queue[und][0][nid]"] = '[nid: ' . $this->topic_queue_node->nid . ']';
+    $edit["field_limit[und][0][value]"] = 5;
+    $this->drupalPost('node/add/biblio-topic-query', $edit, t('Save'));
+    $this->assertText(t('@title has been created.', array('@title' => $edit['title'])));
+    // Check that the node exists in the database.
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+    //Execute the newly created topic query
+    $import = journalstream_biblio_query_execute($node);
+    $this->assertTrue($import);
+  }
+
   /**
     * Returns the number of biblio nodes found
   */

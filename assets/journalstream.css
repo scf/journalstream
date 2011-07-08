@@ -9,12 +9,12 @@ div.node-moderation-form-wrapper {
   padding: 0 0 0 0;
 }
 
-div.view-scf-collections-queue .node {
+div.view-journalstream-queue .node {
   margin-left: 10px;
   clear: right;
   display: block;
 }
 
-div.view-scf-collections-queue .node-unpublished {
+div.view-journalstream-queue .node {
   background: none;
 }

@@ -115,7 +115,7 @@ function journalstream_web_resource_import_form_submit($form, & $form_state) {
       }
     }
   }
-  journalstream_collections_add_to_queue($nids,$queue_nid,$queue);
+  journalstream_add_to_queue($nids,$queue_nid,$queue);
   drupal_set_message(t("Successfully imported " . count($nids) . " " . SCF_WEB_RESOURCE_NODE_TYPE . "."));
   file_delete($import_file);
   //Go to assigned queue
