@@ -199,5 +199,6 @@ function journalstream_biblio_query_execute($feed) {
   // time onwards
   $feed->field_checked[LANGUAGE_NONE][0]['value'] = REQUEST_TIME;
   $feed->field_queued[LANGUAGE_NONE][0]['value'] = 0;
-  return node_save($feed);
+  node_save($feed);
+  return true;
 }
