@@ -1,5 +1,5 @@
-name = "SCF Web Resource Bookmarklet"
+name = "Journalstream Bookmarklet"
 description = "Provides a bookmarklet api used to save Web Resources"
 package = "SCF"
-dependencies[] = "scf_web_resource"
+dependencies[] = "journalstream"
 core = "7.x"

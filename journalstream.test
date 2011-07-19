@@ -111,7 +111,7 @@ class SCFLibraryTopicQueueNodeCreationTestCase extends JournalStreamWebTestCase 
     $accepted_node = $this->createBiblioNode();
     $rejected_node = $this->createBiblioNode();
     $not_reviewed_node = $this->createBiblioNode();
-    $edit['title'] = 'Collection Title';
+    $edit['title'] = 'Topic Title';
     $edit['type'] = 'topic-queue';
     $edit['field_accepted_nodes'] = array(LANGUAGE_NONE => array(0 => array('nid' => $accepted_node->nid)));
     $edit['field_rejected_nodes'] = array(LANGUAGE_NONE => array(0 => array('nid' => $rejected_node->nid)));
@@ -120,6 +120,27 @@ class SCFLibraryTopicQueueNodeCreationTestCase extends JournalStreamWebTestCase 
     $this->assertNotNull($node->field_accepted_nodes); 
     $this->assertNotNull($node->field_rejected_nodes); 
     $this->assertNotNull($node->field_not_reviewed_nodes); 
+  }
+
+  /**
+    * Tests creating a collection from a topic queue
+  */
+  function testCollectionFromTopicQueue() {
+    $edit = array();
+    $accepted_node = $this->createBiblioNode();
+    $rejected_node = $this->createBiblioNode();
+    $not_reviewed_node = $this->createBiblioNode();
+    $edit['title'] = 'Topic Title';
+    $edit['type'] = 'topic-queue';
+    $edit['field_accepted_nodes'] = array(LANGUAGE_NONE => array(0 => array('nid' => $accepted_node->nid)));
+    $edit['field_rejected_nodes'] = array(LANGUAGE_NONE => array(0 => array('nid' => $rejected_node->nid)));
+    $edit['field_not_reviewed_nodes'] = array(LANGUAGE_NONE => array(0 => array('nid' => $not_reviewed_node->nid)));
+    $node = $this->drupalCreateNode($edit);  
+    $this->assertNotNull($node);
+    //Create a collection
+    $edit['title'] = 'Collection Title';
+    $this->drupalPost('node/add/collection/' . $node->nid, $edit, t('Save'));
+    $this->assertText(t('Collection @title has been created.', array('@title' => $edit['title'])));
   }
 }
 

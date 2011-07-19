@@ -71,6 +71,7 @@ function journalstream_admin_paths() {
   return $paths;
 }
 
+
 /** View Related Hooks **/
 
 /**
@@ -192,6 +193,12 @@ function journalstream_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
+ * Implements hook_preprocess()
+*/
+function journalstream_preprocess_page(&$vars) {
+}
+
+/**
 * Implements hook_preprocess_node().
 *
 * This function injects a moderation form to the normal node teaser view
@@ -208,6 +215,8 @@ function journalstream_preprocess_node(&$vars) {
     $vars['moderation_form']['#markup'] .= '</div>';
     $vars['content']['#markup'] = drupal_render($node_view);
   }
+  if($vars['node']->type == 'biblio') {
+  }
 }
 
 /**
@@ -218,10 +227,7 @@ function journalstream_node_insert($node) {
   if($node->type == 'collection') {
     $topic_queue_node = (isset($node->field_topic_queue[LANGUAGE_NONE][0]['nid'])) ? node_load($node->field_topic_queue[LANGUAGE_NONE][0]['nid']) : false;
     if($topic_queue_node) {
-      $topic_queue_node->field_accepted_nodes[LANGUAGE_NONE] = array();
-      $topic_queue_node->field_rejected_nodes[LANGUAGE_NONE] = array();
-      $topic_queue_node->field_not_reviewed_nodes[LANGUAGE_NONE] = array();
-      node_save($topic_queue_node);
+      _journalstream_flush_queue($topic_queue_node->nid);
     }
     //Make sure all referenced nodes are published
     if(!empty($node->field_papers[LANGUAGE_NONE])) {
@@ -281,6 +287,20 @@ function journalstream_moderation_form_callback($form, $form_state) {
   $commands[] = ajax_command_invoke($element, 'slideUp');
   //$commands[] = ajax_command_remove($element);
   return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+/**
+ * Helper function used for clearing the moderation queue
+ * Hook is fired after posting a collection
+ * @param $nid
+ *  Node id of the moderation queue to flush.
+*/
+function _journalstream_flush_queue($nid) {
+  $node = node_load($nid);
+  $node->field_not_reviewed_nodes[LANGUAGE_NONE] = array();
+  $node->field_accepted_nodes[LANGUAGE_NONE] = array();
+  $node->field_rejected_nodes[LANGUAGE_NONE] = array();
+  node_save($node);
 }
 
 
@@ -380,4 +400,54 @@ function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED)
   }
   $result = node_save($qnode);
   return $result;
+}
+
+
+/** 
+ * Function for locating and deleting orphaned Journalstream Topic Queue references
+ **/
+function journalstream_cleanup() {
+  //$journalstream_nids = 
+  $query = new EntityFieldQuery;
+  $changed = false;
+  $count = 0;
+  $result = $query
+  ->entityCondition('entity_type', 'node')
+  ->propertyCondition('type', JS_TOPIC_QUEUE_TYPE)
+  ->execute();
+  foreach($result['node'] as $row) {
+    $queue_node = node_load($row->nid);
+    //Iterate through all the queues and remove any nodes not found
+    if(!empty($queue_node->field_accepted_nodes[LANGUAGE_NONE])) {
+      foreach($queue_node->field_accepted_nodes[LANGUAGE_NONE] as $key => $accepted_nid) {
+        if(!node_load($accepted_nid['nid'])) {
+          unset($queue_node->field_accepted_nodes[LANGUAGE_NONE][$key]);
+          $changed = true;
+          $count += 1;
+        }
+      }
+    }
+    if(!empty($queue_node->field_rejected_nodes[LANGUAGE_NONE])) {
+      foreach($queue_node->field_rejected_nodes[LANGUAGE_NONE] as $key => $rejected_nid) {
+        if(!node_load($rejected_nid['nid'])) {
+          unset($queue_node->field_rejected_nodes[LANGUAGE_NONE][$key]);
+          $changed = true;
+          $count += 1;
+        }
+      }
+    }
+    if(!empty($queue_node->field_not_reviewed_nodes[LANGUAGE_NONE])) {
+      foreach($queue_node->field_not_reviewed_nodes[LANGUAGE_NONE] as $key => $nr_nid) {
+        if(!node_load($nr_nid['nid'])) {
+          unset($queue_node->field_not_reviewed_nodes[LANGUAGE_NONE][$key]);
+          $changed = true;
+          $count += 1;
+        }
+      }
+    }
+    if($changed) {
+      node_save($queue_node);
+    }
+    return $count;
+  }
 }

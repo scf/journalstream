@@ -226,15 +226,3 @@ function journalstream_biblio_import($import_file, $filetype, $userid, $terms, $
   require('./'. drupal_get_path('module', 'biblio') .'/includes/biblio.import.export.inc');
   return biblio_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy);
 }
-
-/**
- * Implements biblio_import_batch_operations()
-*/
-function journalstream_biblio_import_batch_operations($session_id, $user, $userid, $terms, &$context) {
-} 
-
-/**
- * Implements biblio_import_batch_finished()
-*/
-function journalstream_biblio_import_batch_finished($success, $results, $operations) {
-}
