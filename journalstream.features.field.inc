@@ -227,11 +227,10 @@ function journalstream_field_default_fields() {
       'description' => '',
       'display' => array(
         'default' => array(
-          'label' => 'above',
-          'module' => 'node_reference',
+          'label' => 'hidden',
           'settings' => array(),
-          'type' => 'node_reference_default',
-          'weight' => 2,
+          'type' => 'hidden',
+          'weight' => '2',
         ),
         'teaser' => array(
           'label' => 'above',
