@@ -18,3 +18,14 @@ div.view-journalstream-queue .node {
 div.view-journalstream-queue .node {
   background: none;
 }
+
+/** Theme Papers inside a collection **/
+.field-name-field-papers div.field-items {
+  margin-left: 5px;
+}
+.field-name-field-papers .field-items .field-item{
+  padding: 5px 5px 5px 5px;
+  margin: 2px 2px 2px 2px;
+  background-color: #eee;
+  border: 1px solid #ddd;
+}
