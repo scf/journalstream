@@ -297,7 +297,8 @@ function journalstream_moderation_form_callback($form, $form_state) {
 */
 function _journalstream_flush_queue($nid) {
   $node = node_load($nid);
-  $node->field_not_reviewed_nodes[LANGUAGE_NONE] = array();
+  //Don't flush Not Reviewed (for now)
+  //$node->field_not_reviewed_nodes[LANGUAGE_NONE] = array();
   $node->field_accepted_nodes[LANGUAGE_NONE] = array();
   $node->field_rejected_nodes[LANGUAGE_NONE] = array();
   node_save($node);
