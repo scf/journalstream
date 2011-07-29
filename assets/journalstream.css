@@ -8,13 +8,14 @@ div.node-moderation-form-wrapper {
 .node-moderation-form-wrapper .form-item {
   padding: 0 0 0 0;
 }
-
 div.view-journalstream-queue .node {
-  margin-left: 10px;
+  margin-left: 100px;
   clear: right;
   display: block;
 }
-
+div.view-display-id-preview .node {
+  margin-left: 0;
+}
 div.view-journalstream-queue .node {
   background: none;
 }
