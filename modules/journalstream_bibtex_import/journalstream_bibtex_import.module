@@ -1,0 +1,179 @@
+<?php
+
+/**
+ * Implements hook_menu()
+*/
+function journalstream_bibtex_import_menu() {
+  $items = array();
+  $items['node/%node/bibtex_import'] = array(
+    'title' => 'Bibtex Import',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('journalstream_bibtex_import_form'),
+    'access callback' => 'journalstream_bibtex_import_local_task_loader',
+    'access arguments' => array(1),
+    'weight' => 8,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function journalstream_biblio_import_admin_paths() {
+  $paths = array(
+    'node/*/bibtex_import' => TRUE,
+  );
+  return $paths;
+}
+
+
+/**
+ * Access callback for ONLY displaying the journalstream_collections local tasks
+ * if the node type is SCFC_TOPIC_QUEUE_TYPE (defined in journalstream_collections module)
+*/
+function journalstream_bibtex_import_local_task_loader($node) {
+  global $user;
+
+  //Check node access perms
+  $access_granted = node_access('update', $node);
+
+  if($node->type == JS_TOPIC_QUEUE_TYPE && $access_granted) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Hook for generating the bibtex import form
+*/
+function journalstream_bibtex_import_form($form_state) {
+  global $user;
+  $node = menu_get_object();
+  $queue_options = array(
+    'not_reviewed' => 'Not Reviewed',
+    'accepted' => 'Accepted',
+    'rejected' => 'Rejected',
+  );
+  // Defaults to a csv list of pubmed files
+  $form['filetype'] = array (
+    '#type' => 'value',
+    '#value' => 'biblio_bibtex',
+  );
+  $form['journalstream_bibtex_import_file'] = array (
+    '#type' => 'file',
+    '#title' => t('Import file'),
+    '#size' => 60,
+    '#description' => t('A bibtex file to import.'),
+  );
+  $form['queue'] = array(
+    '#type' => 'select',
+    '#title' => t('Moderation Queue'),
+    '#options' => $queue_options,
+    '#default_value' => 'not_reviewed',
+    '#description' => t('Moderation queue to append papers to.')
+  );
+  $form['batch_process'] = array(
+    '#type' => 'value',
+    '#value' => 0,
+  );
+  $form['nid'] = array(
+    '#type' => 'value',
+    '#value' => $node->nid,
+  );
+  $form['#attributes'] = array('enctype' => 'multipart/form-data');
+  $form['button'] = array ('#type' => 'submit', '#value' => t('Import'));
+  return $form;
+}
+
+/**
+ * Implementation of hook_validate() for the journalstream_biblio_import_form.
+ */
+function journalstream_bibtex_import_form_validate($form, &$form_state) {
+  $op = $form_state['values']['op'];
+  $filetype = $form_state['values']['filetype'];
+
+  // Test for either the raw input or the file.
+  if (!$_FILES['files']['name']['journalstream_bibtex_import_file']) {
+    form_set_error('journalstream_bibtex_import_form', t("You must select a bibtex file to import."));
+  }
+
+  if ($op == t('Import') && $filetype == "none") {
+    form_set_error('journalstream_bibtex_import_form', t("Error: You must select a file type"));
+  }
+
+  if ($error = $_FILES['files']['error']['journalstream_bibtex_import_file']) {
+    switch ($error){
+      case 1: form_set_error('journalstream_biblio_import_form', t("The uploaded file exceeds the upload_max_filesize directive in php.ini."));
+      break;
+      case 2: form_set_error('journalstream_biblio_import_form', t("The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form."));
+      break;
+      case 3: form_set_error('journalstream_biblio_import_form', t("The uploaded file was only partially uploaded."));
+      break;
+      case 4: form_set_error('journalstream_biblio_import_form', t("No file was uploaded."));
+      break;
+      case 6: form_set_error('journalstream_biblio_import_form', t("Missing a temporary folder."));
+      break;
+      case 7: form_set_error('journalstream_biblio_import_form', t("Failed to write file to disk."));
+      break;
+      case 8: form_set_error('journalstream_biblio_import_form', t("File upload stopped by extension."));
+    }
+  }
+}
+
+/**
+ * Implementation of hook_submit() for the journalstream_biblio_import_form.
+ */
+function journalstream_bibtex_import_form_submit($form, & $form_state) {
+  global $batch_proc;
+  global $session_id;
+  global $user;
+
+  $import_file = FALSE;
+  $batch_proc = ($form_state['values']['batch_process'] == 1) ? TRUE : FALSE;
+  $userid = (isset ($form_state['values']['userid'])) ? $form_state['values']['userid'] : $user->uid;
+  $queue = (isset ($form_state['values']['queue'])) ? $form_state['values']['queue'] : 'not_reviewed';
+  $nid = (isset ($form_state['values']['nid'])) ? $form_state['values']['nid'] : FALSE;
+  $filetype = $form_state['values']['filetype'];
+
+  $extensions = 'bib txt';
+  $validators['file_validate_extensions'] = array();
+  $validators['file_validate_extensions'][0] = $extensions;
+
+  //Vars needed by biblio_import()
+  $terms = array();
+  $session_id = microtime();
+  $dummy = array();
+
+  if (!$form_state['values']['op'] == t('Import') && !isset($form_state['values']['filetype'])) {
+    return;
+  }
+
+  $import_file = file_save_upload('journalstream_bibtex_import_file',$validators);
+
+  if(!$import_file) {
+    drupal_set_message(t("File was NOT successfully uploaded"), 'error');
+    return;
+  }
+
+  $pnids = journalstream_bibtex_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy);
+  //Add imported nodes to queue
+  journalstream_add_to_queue($pnids,$nid, $queue);
+  drupal_set_message(t("Successfully imported " . count($pnids) . " papers."));
+
+  file_delete($import_file);
+  //Go to assigned queue
+  $path = 'node/' . $nid . '/' . $queue;
+  drupal_goto($path);
+}
+
+/**
+ * Implements biblio_import()
+*/
+function journalstream_bibtex_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy) {
+  require('./'. drupal_get_path('module', 'biblio') .'/includes/biblio.import.export.inc');
+  $import = biblio_import($import_file, $filetype, $userid, $terms, $batch_proc, $session_id, $dummy);
+  return $import;
+}

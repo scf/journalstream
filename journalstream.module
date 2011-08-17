@@ -14,12 +14,20 @@ define('JS_NOT_REVIEWED','not_reviewed');
 define('JS_ACCEPTED', 'accepted');
 define('JS_REJECTED', 'rejected');
 
-
 /**
  * Implements hook_menu()
  */
 function journalstream_menu() {
   $items = array();
+  $items['admin/settings/journalstream'] = array(
+    'title' => 'Journalstream Options',
+    'description' => 'Manage Journalstream options.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('journalstream_admin_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'journalstream.admin.inc',
+  );
   $items['node/%node/not_reviewed'] = array(
     'title' => 'Not Reviewed',
     'type' => MENU_LOCAL_TASK,
@@ -63,7 +71,7 @@ function journalstream_menu() {
  * Implements hook_admin_paths().
  */
 function journalstream_admin_paths() {
-  $paths = array( 
+  $paths = array(
     'node/*/not_reviewed' => TRUE,
     'node/*/accepted' => TRUE,
     'node/*/rejected' => TRUE,
@@ -91,7 +99,7 @@ function journalstream_queue_view($node, $review_status) {
   }
   // Add publish form to preview page
   if($review_status == 'preview') {
-    $view_output['content'] .= drupal_render(drupal_get_form('journalstream_queue_publish_form',array('nid' => $node->nid))); 
+    $view_output['content'] .= drupal_render(drupal_get_form('journalstream_queue_publish_form',array('nid' => $node->nid)));
   }
   return (!empty($view_output['content'])) ? $view_output['content'] : '';
 }
@@ -103,8 +111,8 @@ function journalstream_queue_view($node, $review_status) {
 function journalstream_queue_publish_form($form, &$form_state, $extra) {
   $nid = (isset($extra['nid'])) ? $extra['nid'] : false;
   if($nid) {
-    $form['publish'] = array( 
-      '#type' => 'button', 
+    $form['publish'] = array(
+      '#type' => 'button',
       '#value' => 'Publish',
     );
     $form['#action'] = url('node/add/collection/' . $nid);
@@ -140,9 +148,9 @@ function _journalstream_insert_after_first_element(&$a, $element) {
 }
 
 
-/** 
+/**
  * Access callback for ONLY displaying the journalstream local tasks
- * if the node type is JS_TOPIC_QUEUE_TYPE 
+ * if the node type is JS_TOPIC_QUEUE_TYPE
  */
 function journalstream_local_task_loader($node) {
   global $user;
@@ -190,12 +198,51 @@ function journalstream_form_alter(&$form, &$form_state, $form_id) {
       $form['field_topic_queue'][LANGUAGE_NONE][0]['nid']['#default_value'] = $topic_node->nid;
     }
   }
+  //TODO: Create interface for selecting which node types have journalstream options
+  if($form_id == 'biblio_node_form') {
+    $node = menu_get_object();
+    $default_topic_queues = array();
+    if(isset($node->nid)) {
+      $default_topic_queues = journalstream_get_node_topic_queues($node->nid);
+    }
+    $form['journalstream_settings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Journalstream Options'),
+      '#description' => 'The options below will add this node to the selected JournalStream moderation queues.',
+      '#collapsible' => TRUE,
+      '#weight' => 35,
+      '#group' => 'additional_settings',
+    );
+    $form['journalstream_settings']['topic_queues'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Topic Queue:'),
+      '#options' => _journalstream_get_topic_queues(),
+      '#default_value' => $default_topic_queues,
+    );
+    $form['journalstream_settings']['moderation_status'] = array(
+      '#type' => 'select',
+      '#title' => t('Moderation Status:'),
+      '#options' => _journalstream_get_moderation_options(),
+    );
+  }
 }
 
 /**
- * Implements hook_preprocess()
+ * Implements hook_form_node()
+ * Used for adding journalstream elements to certain node object types
 */
-function journalstream_preprocess_page(&$vars) {
+function journalstream_node_load($nodes, $types) {
+  $journalstream_types = variable_get('journalstream_content_types', _journalstream_get_default_types());
+  foreach($nodes as $node) {
+    if(!in_array($node->type,$journalstream_types)) {
+      continue;
+    }
+    $nid = $node->nid;
+    $journalstream = array();
+    $journalstream['topic_queues'] = journalstream_get_node_topic_queues($nid);
+    $journalstream['moderation_status'] = 'not_reviewed';
+    $nodes[$nid]->journalstream = $journalstream;
+  }
 }
 
 /**
@@ -215,8 +262,6 @@ function journalstream_preprocess_node(&$vars) {
     $vars['moderation_form']['#markup'] .= '</div>';
     $vars['content']['#markup'] = drupal_render($node_view);
   }
-  if($vars['node']->type == 'biblio') {
-  }
 }
 
 /**
@@ -232,9 +277,43 @@ function journalstream_node_insert($node) {
     //Make sure all referenced nodes are published
     if(!empty($node->field_papers[LANGUAGE_NONE])) {
       foreach($node->field_papers[LANGUAGE_NONE] as $pnid) {
-        $pnode = node_load($pnid['nid']); 
+        $pnode = node_load($pnid['nid']);
         $pnode->status = 1;
         node_save($pnode);
+      }
+    }
+  }
+  //Add inserted nodes to queue (if applicable)
+  $journalstream_types = variable_get('journalstream_content_types', _journalstream_get_default_types());
+  if(in_array($node->type, $journalstream_types) && isset($node->topic_queues) && !empty($node->topic_queues)) {
+    $moderation_status = (isset($node->moderation_status)) ? $node->moderation_status : 'not_reviewed';
+    foreach($node->topic_queues as $queue) {
+      journalstream_add_to_queue(array($node->nid),$queue, $moderation_status);
+    }
+  }
+}
+
+/**
+ * Implements hook_node_update()
+*/
+function journalstream_node_update($node) {
+    //Add inserted nodes to queue (if applicable)
+  $journalstream_types = variable_get('journalstream_content_types', _journalstream_get_default_types());
+  if(in_array($node->type, $journalstream_types)) {
+    $current_topic_queues = journalstream_get_node_topic_queues($node->nid);
+    $moderation_status = (isset($node->moderation_status)) ? $node->moderation_status : 'not_reviewed';
+    if(!empty($node->topic_queues)) {
+      //Remove this node from any topic queues it is not longer associated with
+      foreach($current_topic_queues as $current_topic_queue) {
+        if(!in_array($current_topic_queue,$node->topic_queues)) {
+          journalstream_remove_from_queue($node->nid,$current_topic_queue);
+        }
+      }
+      foreach($node->topic_queues as $queue) {
+        //We don't want to re-insert nodes into a topic queue
+        if(!in_array($queue, $current_topic_queues)) {
+          journalstream_add_to_queue(array($node->nid),$queue, $moderation_status);
+        }
       }
     }
   }
@@ -249,7 +328,7 @@ function journalstream_entity_info_alter(&$entity_info) {
     'label' => t('SCF Collection Moderation'),
     'custom settings' => TRUE,
   );
-} 
+}
 
 /**
  * Implements hook_form()
@@ -258,7 +337,7 @@ function journalstream_entity_info_alter(&$entity_info) {
 function journalstream_moderation_form($form, &$form_state, $extra = null) {
   $review_statuses = array('not_reviewed' => 'Not Reviewed', 'accepted' => 'Accepted', 'rejected' => 'Rejected');
   $nid = isset($extra['node']->nid) ? $extra['node']->nid : '';
-  $pnid = isset($extra['parent_node']->nid) ? $extra['parent_node']->nid : ''; 
+  $pnid = isset($extra['parent_node']->nid) ? $extra['parent_node']->nid : '';
   $default = _journalstream_get_node_queue($extra['parent_node'], $nid);
   $form['moderation_form']['review_status'] = array(
     '#title' => 'paper review status',
@@ -266,7 +345,7 @@ function journalstream_moderation_form($form, &$form_state, $extra = null) {
     '#options' => $review_statuses,
     '#default_value' => $default,
     '#ajax' => array(
-      'callback' => 'journalstream_moderation_form_callback', 
+      'callback' => 'journalstream_moderation_form_callback',
     ),
   );
   $form['parent_node'] = array('#type' => 'value', '#value' => $pnid);
@@ -281,12 +360,52 @@ function journalstream_moderation_form_callback($form, $form_state) {
   //Add the node to the correct queue
   journalstream_add_to_queue(array($form_state['values']['node']), $form_state['values']['parent_node'], $form_state['values']['review_status']);
   // Dom element containing node
-  $element = "#node-" . $form_state['values']['node'] . "-moderation-form"; 
+  $element = "#node-" . $form_state['values']['node'] . "-moderation-form";
   $commands = array();
   //Hide the calling node form
   $commands[] = ajax_command_invoke($element, 'slideUp');
   //$commands[] = ajax_command_remove($element);
   return array('#type' => 'ajax', '#commands' => $commands);
+}
+
+/**
+ * Hook for getting a list of topic queue nodes
+ * @return array()
+*/
+function _journalstream_get_topic_queues() {
+  $query = new EntityFieldQuery;
+  $result = $query
+  ->entityCondition('entity_type', 'node')
+  ->propertyCondition('type', JS_TOPIC_QUEUE_TYPE)
+  ->execute();
+  $nodes = array();
+  foreach($result['node'] as $row) {
+    $node = node_load($row->nid);
+    if($node && isset($node->nid) && isset($node->title)) {
+      $nodes[$node->nid] = $node->title;
+    }
+  }
+  return $nodes;
+}
+
+/**
+ * Hook for returning list of queue moderation options
+ * @return array
+*/
+function _journalstream_get_moderation_options() {
+  return array(
+    'not_reviewed' => 'Not Reviewed',
+    'accepted' => 'Accepted',
+    'rejected' => 'Rejected',
+  );
+}
+
+/**
+ * Hook for returning default content types used by journalstream
+ * @return array()
+*/
+function _journalstream_get_default_types() {
+  return array('biblio','resources');
 }
 
 /**
@@ -320,7 +439,7 @@ function _journalstream_get_node_queue($parent_node, $nid) {
       if($row['nid'] == $nid) {
         return 'not_reviewed';
       }
-    } 
+    }
   }
   //Iterate Through Accepted Nodes
   if(!empty($parent_node->field_accepted_nodes[LANGUAGE_NONE])) {
@@ -328,7 +447,7 @@ function _journalstream_get_node_queue($parent_node, $nid) {
       if($row['nid'] == $nid) {
         return 'accepted';
       }
-    } 
+    }
   }
   //Iterate Through Rejected Nodes
   if(!empty($parent_node->field_rejected_nodes[LANGUAGE_NONE])) {
@@ -336,7 +455,7 @@ function _journalstream_get_node_queue($parent_node, $nid) {
       if($row['nid'] == $nid) {
         return 'rejected';
       }
-    } 
+    }
   }
 }
 
@@ -361,9 +480,9 @@ function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED)
     return;
   }
   foreach($nids as $nid) {
-    
+
     $this_nid = array('nid' => $nid);
-    // Remove node from queues 
+    // Remove node from queues
     if(!empty($qnode->field_accepted_nodes[LANGUAGE_NONE])) {
       foreach($qnode->field_accepted_nodes[LANGUAGE_NONE] as $k => $v) {
         if($v['nid'] == $nid) {
@@ -381,7 +500,7 @@ function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED)
     if(!empty($qnode->field_rejected_nodes[LANGUAGE_NONE])) {
       foreach($qnode->field_rejected_nodes[LANGUAGE_NONE] as $k => $v) {
         if($v['nid'] == $nid) {
-          unset($qnode->field_rejected_nodes[LANGUAGE_NONE][$k]); 
+          unset($qnode->field_rejected_nodes[LANGUAGE_NONE][$k]);
         }
       }
     }
@@ -389,13 +508,13 @@ function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED)
     //Add Node to new queue
     switch($queue) {
       case JS_ACCEPTED:
-        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = $this_nid; 
+        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = $this_nid;
         break;
       case JS_REJECTED:
-        $qnode->field_rejected_nodes[LANGUAGE_NONE][] = $this_nid; 
+        $qnode->field_rejected_nodes[LANGUAGE_NONE][] = $this_nid;
         break;
       default:
-        $qnode->field_not_reviewed_nodes[LANGUAGE_NONE][] = $this_nid; 
+        $qnode->field_not_reviewed_nodes[LANGUAGE_NONE][] = $this_nid;
         break;
     }
   }
@@ -403,12 +522,80 @@ function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED)
   return $result;
 }
 
+/**
+ * Hook for removing a node from a queue
+*/
+function journalstream_remove_from_queue($nid, $queue_nid) {
+  $qnode = node_load($queue_nid);
+  // Remove node from queues
+  if(!empty($qnode->field_accepted_nodes[LANGUAGE_NONE])) {
+    foreach($qnode->field_accepted_nodes[LANGUAGE_NONE] as $k => $v) {
+      if($v['nid'] == $nid) {
+        unset($qnode->field_accepted_nodes[LANGUAGE_NONE][$k]);
+      }
+    }
+  }
+  if(!empty($qnode->field_not_reviewed_nodes[LANGUAGE_NONE])) {
+    foreach($qnode->field_not_reviewed_nodes[LANGUAGE_NONE] as $k => $v) {
+      if($v['nid'] == $nid) {
+        unset($qnode->field_not_reviewed_nodes[LANGUAGE_NONE][$k]);
+      }
+    }
+  }
+  if(!empty($qnode->field_rejected_nodes[LANGUAGE_NONE])) {
+    foreach($qnode->field_rejected_nodes[LANGUAGE_NONE] as $k => $v) {
+      if($v['nid'] == $nid) {
+        unset($qnode->field_rejected_nodes[LANGUAGE_NONE][$k]);
+      }
+    }
+  }
+  $result = node_save($qnode);
+  return $result;
+}
 
-/** 
+/**
+ * Returns an array of topic queue nids a node belongs too
+ * @param $nid
+ * @return array of nids
+*/
+function journalstream_get_node_topic_queues($nid) {
+  $nid = (int) $nid;
+  $query = new EntityFieldQuery;
+  $nodes = array();
+  $topic_queues = array();
+  $nodes[] = $query
+  ->entityCondition('entity_type', 'node')
+  ->propertyCondition('type', 'topic_queue')
+  ->fieldCondition('field_not_reviewed_nodes','nid',$nid,'=')
+  ->execute();
+  $nodes[] = $query
+  ->entityCondition('entity_type', 'node')
+  ->propertyCondition('type', 'topic_queue')
+  ->fieldCondition('field_accepted_nodes','nid',$nid,'=')
+  ->execute();
+  $nodes[] = $query
+  ->entityCondition('entity_type', 'node')
+  ->propertyCondition('type', 'topic_queue')
+  ->fieldCondition('field_rejected_nodes','nid',$nid,'=')
+  ->execute();
+
+  foreach($nodes as $node) {
+    if(!empty($node) && !empty($node['node'])) {
+      $n = array_keys($node['node']);
+      if(!empty($n[0])) {
+        $topic_queues[] = $n[0];
+      }
+    }
+  }
+  return $topic_queues;
+}
+
+
+/**
  * Function for locating and deleting orphaned Journalstream Topic Queue references
  **/
 function journalstream_cleanup() {
-  //$journalstream_nids = 
+  //$journalstream_nids =
   $query = new EntityFieldQuery;
   $changed = false;
   $count = 0;

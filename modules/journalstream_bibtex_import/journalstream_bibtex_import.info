@@ -1,0 +1,7 @@
+core = "7.x"
+dependencies[] = "journalstream"
+description = "Provided an interface for importing Bibtex files"
+files[] = "journalstream_bibtex_import.test"
+name = "JournalStream Bibtex Import"
+package = "SCF"
+php = "5.2.4"
