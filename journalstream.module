@@ -9,6 +9,7 @@ include_once('journalstream.features.field.inc');
 
 /** Constants **/
 define('JS_TOPIC_QUEUE_TYPE','topic_queue'); //Node type of topic queue
+define('JS_COLLECTION_TYPE','collection'); //Node type of topic queue
 define('JS_COLLECTIONS_QUEUE_VIEW', 'journalstream_queue');
 define('JS_NOT_REVIEWED','not_reviewed');
 define('JS_ACCEPTED', 'accepted');
@@ -19,6 +20,7 @@ define('JS_REJECTED', 'rejected');
  */
 function journalstream_menu() {
   $items = array();
+  //Admin Page
   $items['admin/settings/journalstream'] = array(
     'title' => 'Journalstream Options',
     'description' => 'Manage Journalstream options.',
@@ -28,6 +30,14 @@ function journalstream_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'journalstream.admin.inc',
   );
+  //Lists the latest published journalstream
+  $items['journalstream'] = array(
+    'title' => 'Latest Journalstream',
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'journalstream_latest_collection',
+    'access arguments' => array('access content'),
+  );
+  //Jouranlstream Moderation Tabs
   $items['node/%node/not_reviewed'] = array(
     'title' => 'Not Reviewed',
     'type' => MENU_LOCAL_TASK,
@@ -102,6 +112,20 @@ function journalstream_queue_view($node, $review_status) {
     $view_output['content'] .= drupal_render(drupal_get_form('journalstream_queue_publish_form',array('nid' => $node->nid)));
   }
   return (!empty($view_output['content'])) ? $view_output['content'] : '';
+}
+
+/**
+ * Hook for rendering the most recent published collection
+*/
+function journalstream_latest_collection() {
+  $nid = _journalstream_most_recent_collection_nid();
+  if($nid) {
+    menu_set_active_item('journalstream');
+    return menu_execute_active_handler('node/' . $nid, FALSE);
+  }
+  else {
+    drupal_set_title("There are currently no published collections.");
+  }
 }
 
 /**
@@ -588,6 +612,18 @@ function journalstream_get_node_topic_queues($nid) {
     }
   }
   return $topic_queues;
+}
+
+/**
+ * Hook for retrieving the most recent Journalstream Collection
+ * @return $nid of most recent published collection node.
+*/
+function _journalstream_most_recent_collection_nid() {
+  $sql = "Select n.nid FROM {node} n WHERE n.type = :ntype AND n.status = 1 ORDER BY created DESC LIMIT 1";
+  $result = db_query($sql, array(':ntype' => JS_COLLECTION_TYPE));
+  foreach($result as $row) {
+    return $row->nid;
+  }
 }
 
 
