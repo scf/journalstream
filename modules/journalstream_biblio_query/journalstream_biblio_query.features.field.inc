@@ -42,7 +42,7 @@ function journalstream_biblio_query_field_default_fields() {
       'bundle' => 'biblio_topic_query',
       'default_value' => NULL,
       'deleted' => '0',
-      'description' => 'Currently used for pubmed query.',
+      'description' => 'Currently used for pubmed query. To narrow down queries on only get certain type of results, e.g. avoid books, prepend <code> AND (Review[ptyp] OR Journal Article[ptyp])</code> at the end of the query',
       'display' => array(
         'default' => array(
           'label' => 'hidden',
