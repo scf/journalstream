@@ -1,7 +1,6 @@
 div.node-moderation-form-wrapper {
   display: block;
   float: left;
-  margin: 0 10px auto auto;
   z-index: 999;
 }
 
@@ -9,10 +8,15 @@ div.node-moderation-form-wrapper {
   padding: 0 0 0 0;
 }
 div.view-journalstream-queue .node {
-  margin-left: 100px;
-  clear: right;
   display: block;
 }
+
+div.view-journalstream-queue .journalstream-content-wrapper {
+  margin-left: 180px;
+  display: block;
+  z-index: 1;
+}
+
 div.view-display-id-preview .node {
   margin-left: 0;
 }
