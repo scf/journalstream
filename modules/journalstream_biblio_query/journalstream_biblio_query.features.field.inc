@@ -72,8 +72,8 @@ function journalstream_biblio_query_field_default_fields() {
       'label' => 'Query',
       'required' => 0,
       'settings' => array(
-        'display_summary' => 1,
-        'text_processing' => '1',
+        'display_summary' => 0,
+        'text_processing' => '0',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
@@ -675,7 +675,7 @@ function journalstream_biblio_query_field_default_fields() {
   t('Block');
   t('Block query from executing?');
   t('Checked');
-  t('Currently used for pubmed query.');
+  t('Currently used for pubmed query. To narrow down queries on only get certain type of results, e.g. avoid books, prepend <code> AND (Review[ptyp] OR Journal Article[ptyp])</code> at the end of the query');
   t('Description');
   t('Limit');
   t('Modified');
