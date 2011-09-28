@@ -382,52 +382,10 @@ function journalstream_moderation_form($form, &$form_state, $extra = null) {
 
 /**
  * Implements hook_form()
- * Generates some of the (optional) node moderation form settings.
-*/
+ * Generates an (optional) inline moderation form so modules can add custom fields to journalstream moderation.
+ */
 function journalstream_inline_moderation_form($form, &$form_state, $extra = null) {
-  $node = isset($extra['node']) ? $extra['node'] : null;
-  if(empty($node)) {
-    return;
-  }
-  $default_editors_comments = (isset($node->field_scf_editors_comment['und'][0]['value'])) ? $node->field_scf_editors_comment['und'][0]['value'] : "";
-  $form['nid'] = array(
-    '#type' => 'value',
-    '#value' => $node->nid,
-  );
-  $form['inline_moderation_form']['editors_comments_fieldset'] = array(
-    '#type' => 'fieldset',
-    '#collapsible' => true,
-    '#collapsed' => true,
-    '#title' => t('Editor\'s Comments'),
-  );
-  $form['inline_moderation_form']['editors_comments_fieldset']['editors_comments'] = array(
-    '#type' => 'textarea',
-    '#default_value' => $default_editors_comments,
-  );
-  $form['inline_moderation_form']['editors_comments_fieldset']['publish'] = array(
-    '#type' => 'button',
-    '#name' => 'save_editors_comment',
-    '#value' => 'Save Comment',
-    '#ajax' => array(
-      'event' => 'click',
-      'callback' => 'journalstream_inline_moderation_form_editors_comments_submit',
-    ),
-  );
   return $form;
-}
-
-/**
- * Implements hook_form_submit()
- * Submission handler for Editors Comments
-*/
-function journalstream_inline_moderation_form_editors_comments_submit($form, &$form_state) {
-  $node = isset($form_state['values']['nid']) ? node_load($form_state['values']['nid']) : null;
-  if(empty($node)) {
-    return;
-  }
-  $node->field_scf_editors_comment['und'][0]['value'] = filter_xss($form_state['values']['editors_comments']);
-  node_save($node);
-  return "";
 }
 
 /**
