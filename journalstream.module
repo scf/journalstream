@@ -414,10 +414,12 @@ function _journalstream_get_topic_queues() {
   ->propertyCondition('type', JS_TOPIC_QUEUE_TYPE)
   ->execute();
   $nodes = array();
-  foreach($result['node'] as $row) {
-    $node = node_load($row->nid);
-    if($node && isset($node->nid) && isset($node->title)) {
-      $nodes[$node->nid] = $node->title;
+  if(isset($result['node'])) {
+    foreach($result['node'] as $row) {
+      $node = node_load($row->nid);
+      if($node && isset($node->nid) && isset($node->title)) {
+        $nodes[$node->nid] = $node->title;
+      }
     }
   }
   return $nodes;
