@@ -5,12 +5,12 @@
  */
 
 /**
- * Implementation of hook_field_default_fields().
+ * Implements hook_field_default_fields().
  */
 function journalstream_field_default_fields() {
   $fields = array();
 
-  // Exported field: 'node-collection-body'
+  // Exported field: 'node-collection-body'.
   $fields['node-collection-body'] = array(
     'field_config' => array(
       'active' => '1',
@@ -33,6 +33,7 @@ function journalstream_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
@@ -89,7 +90,7 @@ function journalstream_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-collection-field_papers'
+  // Exported field: 'node-collection-field_papers'.
   $fields['node-collection-field_papers'] = array(
     'field_config' => array(
       'active' => '1',
@@ -110,6 +111,7 @@ function journalstream_field_default_fields() {
           0 => 'nid',
         ),
       ),
+      'locked' => '0',
       'module' => 'node_reference',
       'settings' => array(
         'referenceable_types' => array(
@@ -179,7 +181,7 @@ function journalstream_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-collection-field_topic_queue'
+  // Exported field: 'node-collection-field_topic_queue'.
   $fields['node-collection-field_topic_queue'] = array(
     'field_config' => array(
       'active' => '1',
@@ -200,6 +202,7 @@ function journalstream_field_default_fields() {
           0 => 'nid',
         ),
       ),
+      'locked' => '0',
       'module' => 'node_reference',
       'settings' => array(
         'referenceable_types' => array(
@@ -209,7 +212,6 @@ function journalstream_field_default_fields() {
           'collection' => 0,
           'page' => 0,
           'topic_queue' => 'topic_queue',
-          'web_resource' => 0,
         ),
         'view' => array(
           'args' => array(),
@@ -266,7 +268,7 @@ function journalstream_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-topic_queue-body'
+  // Exported field: 'node-topic_queue-body'.
   $fields['node-topic_queue-body'] = array(
     'field_config' => array(
       'active' => '1',
@@ -289,6 +291,7 @@ function journalstream_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
@@ -345,7 +348,7 @@ function journalstream_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-topic_queue-field_accepted_nodes'
+  // Exported field: 'node-topic_queue-field_accepted_nodes'.
   $fields['node-topic_queue-field_accepted_nodes'] = array(
     'field_config' => array(
       'active' => '1',
@@ -366,6 +369,7 @@ function journalstream_field_default_fields() {
           0 => 'nid',
         ),
       ),
+      'locked' => '0',
       'module' => 'node_reference',
       'settings' => array(
         'referenceable_types' => array(
@@ -431,7 +435,7 @@ function journalstream_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-topic_queue-field_not_reviewed_nodes'
+  // Exported field: 'node-topic_queue-field_not_reviewed_nodes'.
   $fields['node-topic_queue-field_not_reviewed_nodes'] = array(
     'field_config' => array(
       'active' => '1',
@@ -452,6 +456,7 @@ function journalstream_field_default_fields() {
           0 => 'nid',
         ),
       ),
+      'locked' => '0',
       'module' => 'node_reference',
       'settings' => array(
         'referenceable_types' => array(
@@ -517,7 +522,7 @@ function journalstream_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-topic_queue-field_rejected_nodes'
+  // Exported field: 'node-topic_queue-field_rejected_nodes'.
   $fields['node-topic_queue-field_rejected_nodes'] = array(
     'field_config' => array(
       'active' => '1',
@@ -538,6 +543,7 @@ function journalstream_field_default_fields() {
           0 => 'nid',
         ),
       ),
+      'locked' => '0',
       'module' => 'node_reference',
       'settings' => array(
         'referenceable_types' => array(

@@ -5,12 +5,12 @@
  */
 
 /**
- * Implementation of hook_field_default_fields().
+ * Implements hook_field_default_fields().
  */
 function journalstream_biblio_query_field_default_fields() {
   $fields = array();
 
-  // Exported field: 'node-biblio_topic_query-body'
+  // Exported field: 'node-biblio_topic_query-body'.
   $fields['node-biblio_topic_query-body'] = array(
     'field_config' => array(
       'active' => '1',
@@ -33,6 +33,7 @@ function journalstream_biblio_query_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
@@ -90,7 +91,7 @@ function journalstream_biblio_query_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-biblio_topic_query-field_block'
+  // Exported field: 'node-biblio_topic_query-field_block'.
   $fields['node-biblio_topic_query-field_block'] = array(
     'field_config' => array(
       'active' => '1',
@@ -104,6 +105,7 @@ function journalstream_biblio_query_field_default_fields() {
           0 => 'value',
         ),
       ),
+      'locked' => '0',
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
@@ -164,7 +166,7 @@ function journalstream_biblio_query_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-biblio_topic_query-field_checked'
+  // Exported field: 'node-biblio_topic_query-field_checked'.
   $fields['node-biblio_topic_query-field_checked'] = array(
     'field_config' => array(
       'active' => '1',
@@ -174,6 +176,7 @@ function journalstream_biblio_query_field_default_fields() {
       'field_name' => 'field_checked',
       'foreign keys' => array(),
       'indexes' => array(),
+      'locked' => '0',
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
@@ -235,7 +238,7 @@ function journalstream_biblio_query_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-biblio_topic_query-field_description'
+  // Exported field: 'node-biblio_topic_query-field_description'.
   $fields['node-biblio_topic_query-field_description'] = array(
     'field_config' => array(
       'active' => '1',
@@ -256,6 +259,7 @@ function journalstream_biblio_query_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(),
       'translatable' => '1',
@@ -307,7 +311,7 @@ function journalstream_biblio_query_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-biblio_topic_query-field_limit'
+  // Exported field: 'node-biblio_topic_query-field_limit'.
   $fields['node-biblio_topic_query-field_limit'] = array(
     'field_config' => array(
       'active' => '1',
@@ -317,6 +321,7 @@ function journalstream_biblio_query_field_default_fields() {
       'field_name' => 'field_limit',
       'foreign keys' => array(),
       'indexes' => array(),
+      'locked' => '0',
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
@@ -374,7 +379,7 @@ function journalstream_biblio_query_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-biblio_topic_query-field_modified'
+  // Exported field: 'node-biblio_topic_query-field_modified'.
   $fields['node-biblio_topic_query-field_modified'] = array(
     'field_config' => array(
       'active' => '1',
@@ -384,6 +389,7 @@ function journalstream_biblio_query_field_default_fields() {
       'field_name' => 'field_modified',
       'foreign keys' => array(),
       'indexes' => array(),
+      'locked' => '0',
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
@@ -441,7 +447,7 @@ function journalstream_biblio_query_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-biblio_topic_query-field_queued'
+  // Exported field: 'node-biblio_topic_query-field_queued'.
   $fields['node-biblio_topic_query-field_queued'] = array(
     'field_config' => array(
       'active' => '1',
@@ -451,6 +457,7 @@ function journalstream_biblio_query_field_default_fields() {
       'field_name' => 'field_queued',
       'foreign keys' => array(),
       'indexes' => array(),
+      'locked' => '0',
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
@@ -512,7 +519,7 @@ function journalstream_biblio_query_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-biblio_topic_query-field_refresh'
+  // Exported field: 'node-biblio_topic_query-field_refresh'.
   $fields['node-biblio_topic_query-field_refresh'] = array(
     'field_config' => array(
       'active' => '1',
@@ -522,6 +529,7 @@ function journalstream_biblio_query_field_default_fields() {
       'field_name' => 'field_refresh',
       'foreign keys' => array(),
       'indexes' => array(),
+      'locked' => '0',
       'module' => 'number',
       'settings' => array(),
       'translatable' => '1',
@@ -583,7 +591,7 @@ function journalstream_biblio_query_field_default_fields() {
     ),
   );
 
-  // Exported field: 'node-biblio_topic_query-field_topic_queue'
+  // Exported field: 'node-biblio_topic_query-field_topic_queue'.
   $fields['node-biblio_topic_query-field_topic_queue'] = array(
     'field_config' => array(
       'active' => '1',
@@ -604,6 +612,7 @@ function journalstream_biblio_query_field_default_fields() {
           0 => 'nid',
         ),
       ),
+      'locked' => '0',
       'module' => 'node_reference',
       'settings' => array(
         'referenceable_types' => array(
