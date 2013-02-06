@@ -20,7 +20,7 @@ function journalstream_biblio_query_ctools_plugin_api() {
 function journalstream_biblio_query_node_info() {
   $items = array(
     'biblio_topic_query' => array(
-      'name' => t('Biblio Topic Query'),
+      'name' => t('JournalStream Topic Query'),
       'base' => 'node_content',
       'description' => t('A biblio query used to populate the topic queue.'),
       'has_title' => '1',
