@@ -520,31 +520,20 @@ function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED)
 
     $this_nid = array('nid' => $nid);
     // Remove node from queues
-    if(!empty($qnode->field_accepted_nodes[LANGUAGE_NONE])) {
-      foreach($qnode->field_accepted_nodes[LANGUAGE_NONE] as $k => $v) {
-        if($v['nid'] == $nid) {
-          unset($qnode->field_accepted_nodes[LANGUAGE_NONE][$k]);
+    $field_names = array('field_accepted_nodes', 'field_not_reviewed_nodes', 'field_rejected_nodes');
+    foreach ($field_names as $field_name) {
+      if(!empty($qnode->{$field_name}[LANGUAGE_NONE])) {
+        $field_items = $qnode->{$field_name}[LANGUAGE_NONE];
+        foreach($field_items as $k => $v) {
+          if($v['nid'] == $nid) {
+            unset($field_items[$k]);
+          }
         }
-      }
-    }
-    if(!empty($qnode->field_not_reviewed_nodes[LANGUAGE_NONE])) {
-      $field_items = $qnode->field_not_reviewed_nodes[LANGUAGE_NONE];
-      foreach($field_items as $k => $v) {
-        if($v['nid'] == $nid) {
-          unset($field_items[$k]);
-        }
-      }
-      // Re-add the remaining items to the field array from scratch, in order
-      // to have a consistent order of deltas.
-      $qnode->field_not_reviewed_nodes[LANGUAGE_NONE] = array();
-      foreach($field_items as $k => $v) {
-        $qnode->field_not_reviewed_nodes[LANGUAGE_NONE][] = $v;
-      }
-    }
-    if(!empty($qnode->field_rejected_nodes[LANGUAGE_NONE])) {
-      foreach($qnode->field_rejected_nodes[LANGUAGE_NONE] as $k => $v) {
-        if($v['nid'] == $nid) {
-          unset($qnode->field_rejected_nodes[LANGUAGE_NONE][$k]);
+        // Re-add the remaining items to the field array from scratch, in order
+        // to have a consistent order of deltas.
+        $qnode->{$field_name}[LANGUAGE_NONE] = array();
+        foreach($field_items as $k => $v) {
+          $qnode->{$field_name}[LANGUAGE_NONE][] = $v;
         }
       }
     }
