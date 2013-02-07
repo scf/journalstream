@@ -518,7 +518,6 @@ function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED)
   }
   foreach($nids as $nid) {
 
-    $this_nid = array('nid' => $nid);
     // Remove node from queues
     $field_names = array('field_accepted_nodes', 'field_not_reviewed_nodes', 'field_rejected_nodes');
     foreach ($field_names as $field_name) {
@@ -541,13 +540,13 @@ function journalstream_add_to_queue($nids, $queue_nid, $queue = JS_NOT_REVIEWED)
     //Add Node to new queue
     switch($queue) {
       case JS_ACCEPTED:
-        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = $this_nid;
+        $qnode->field_accepted_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
         break;
       case JS_REJECTED:
-        $qnode->field_rejected_nodes[LANGUAGE_NONE][] = $this_nid;
+        $qnode->field_rejected_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
         break;
       default:
-        $qnode->field_not_reviewed_nodes[LANGUAGE_NONE][] = $this_nid;
+        $qnode->field_not_reviewed_nodes[LANGUAGE_NONE][] = array('nid' => $nid);
         break;
     }
   }
