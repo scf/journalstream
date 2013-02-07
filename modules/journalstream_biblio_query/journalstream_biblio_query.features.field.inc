@@ -329,7 +329,11 @@ function journalstream_biblio_query_field_default_fields() {
     ),
     'field_instance' => array(
       'bundle' => 'biblio_topic_query',
-      'default_value' => NULL,
+      'default_value' => array(
+        0 => array(
+          'value' => '20',
+        ),
+      ),
       'deleted' => '0',
       'description' => 'Number of query results to return.',
       'display' => array(
