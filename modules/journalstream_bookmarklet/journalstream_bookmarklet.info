@@ -1,6 +1,0 @@
-name = "Journalstream Bookmarklet"
-description = "Provides a bookmarklet api used to save Web Resources"
-package = "SCF"
-dependencies[] = "journalstream"
-dependencies[] = "journalstream_web_resource"
-core = "7.x"
