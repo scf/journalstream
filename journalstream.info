@@ -8,6 +8,7 @@ dependencies[] = biblio_pm
 dependencies[] = entity
 dependencies[] = features
 dependencies[] = node_reference
+dependencies[] = references
 dependencies[] = strongarm
 dependencies[] = views
 features[ctools][] = strongarm:strongarm:1
