@@ -50,7 +50,7 @@ function journalstream_flag_default_flags() {
         0 => 2,
       ),
     ),
-    'weight' => 0,
+    'weight' => 1,
     'show_on_form' => 1,
     'access_author' => '',
     'show_on_page' => 0,
