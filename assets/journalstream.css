@@ -10,6 +10,13 @@ div.node-moderation-form-wrapper {
 div.view-journalstream-queue .node {
   display: block;
 }
+div.view-journalstream-queue .node-moderation-form-wrapper .flag-wrapper {
+  display: block;
+}
+div.view-journalstream-queue .views-row .field-content > div {
+  border-bottom: solid black 1px;
+  padding-bottom: 6px;
+}
 
 div.view-journalstream-queue .journalstream-content-wrapper {
   margin-left: 180px;

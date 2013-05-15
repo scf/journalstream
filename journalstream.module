@@ -374,6 +374,12 @@ function journalstream_moderation_form($form, &$form_state, $extra = null) {
       'callback' => 'journalstream_moderation_form_callback',
     ),
   );
+  $form['moderation_form']['editors_pick_flag'] = array(
+    '#markup' => flag_create_link('js_editors_pick', $nid),
+  );
+  $form['moderation_form']['classic_flag'] = array(
+    '#markup' => flag_create_link('js_classic_paper', $nid),
+  );
   $form['parent_node'] = array('#type' => 'value', '#value' => $pnid);
   $form['node'] = array('#type' => 'value', '#value' => $nid);
   return $form;
