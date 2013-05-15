@@ -458,14 +458,26 @@ function _journalstream_get_default_types() {
 */
 function _journalstream_flush_queue($nid) {
   $node = node_load($nid);
+
+  // Delete rejected papers.
+  // @todo this might delete existing papers which already existed in the system
+  // prior to the biblio import. Biblio will not re-import them, it will skip
+  // the import and add the existing paper to the queue, which might end up
+  // rejected and then deleted. What should happen is that these exiting
+  // papers should be flagged during the import so as to not be deleted during
+  // the rejected queue flushing.
+  if (!empty($node->field_rejected_nodes[LANGUAGE_NONE])) {
+    foreach ($node->field_rejected_nodes[LANGUAGE_NONE] as $item) {
+      node_delete($item['nid']);
+    }
+  }
+
   //Don't flush Not Reviewed (for now)
   //$node->field_not_reviewed_nodes[LANGUAGE_NONE] = array();
   $node->field_accepted_nodes[LANGUAGE_NONE] = array();
   $node->field_rejected_nodes[LANGUAGE_NONE] = array();
   node_save($node);
 }
-
-
 
 /**
  * Helper function for determining which queue a node is in
